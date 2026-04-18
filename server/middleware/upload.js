@@ -10,14 +10,14 @@ const fileFilter = (req, file, cb) => {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-powerpoint',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
     'image/jpeg',
-    'image/png',
-    'video/mp4'
+    'image/png'
   ];
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('File type not supported'), false);
+    cb(new Error('Invalid file type detected. Only documents and educational images are allowed.'), false);
   }
 };
 

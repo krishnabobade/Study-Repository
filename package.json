@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "NODE_ENV=production node server/server.js",
+    "start": "cross-env NODE_ENV=production node server/server.js",
     "seed": "cd server && node seed.js",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0"
   }
 }

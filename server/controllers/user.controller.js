@@ -44,3 +44,119 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.toggleBookmark = async (req, res) => {
+  try {
+    const { resourceId } = req.body;
+    const user = await User.findById(req.user.id);
+    const index = user.savedResources.indexOf(resourceId);
+    
+    if (index === -1) {
+      user.savedResources.push(resourceId);
+    } else {
+      user.savedResources.splice(index, 1);
+    }
+    
+    await user.save();
+    res.json({ success: true, savedResources: user.savedResources });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getSavedResources = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('savedResources');
+    res.json({ success: true, resources: user.savedResources });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const UserInteraction = require('../models/UserInteraction');
+
+exports.getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('name avatar bio role joined course semester yearOfStudy totalUploads totalDownloads totalLikes totalDislikes avgRating ratingCount');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Fetch user's public activity
+    let recentActivity = [];
+    if (user.role === 'teacher' || user.role === 'admin') {
+      recentActivity = await Resource.find({ uploadedBy: user._id, isApproved: true })
+        .sort('-createdAt').limit(10)
+        .select('title subject category views downloads createdAt');
+    }
+
+    // Check if the current requesting user has already interacted with this profile
+    let myInteraction = null;
+    if (req.user) {
+      myInteraction = await UserInteraction.findOne({ targetUser: user._id, fromUser: req.user.id });
+    }
+
+    res.json({ success: true, profile: user, recentActivity, myInteraction });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.interactWithUser = async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+    const fromUserId = req.user.id;
+    const { action, rating } = req.body; // action: 'like', 'dislike', or 'none'. rating: 1-5 (optional)
+
+    if (targetUserId === fromUserId) {
+      return res.status(400).json({ success: false, message: 'Cannot interact with your own profile' });
+    }
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) return res.status(404).json({ success: false, message: 'User not found' });
+
+    let interaction = await UserInteraction.findOne({ targetUser: targetUserId, fromUser: fromUserId });
+    
+    if (!interaction) {
+      interaction = new UserInteraction({ targetUser: targetUserId, fromUser: fromUserId });
+    }
+
+    if (action !== undefined) {
+      interaction.action = action;
+    }
+    if (rating !== undefined) {
+      interaction.rating = Number(rating);
+    }
+
+    await interaction.save();
+
+    // Recalculate aggregates for the target user safely
+    const stats = await UserInteraction.aggregate([
+      { $match: { targetUser: new require('mongoose').Types.ObjectId(targetUserId) } },
+      { $group: {
+          _id: '$targetUser',
+          totalLikes: { $sum: { $cond: [{ $eq: ['$action', 'like'] }, 1, 0] } },
+          totalDislikes: { $sum: { $cond: [{ $eq: ['$action', 'dislike'] }, 1, 0] } },
+          ratingSum: { $sum: { $cond: [{ $gt: ['$rating', 0] }, '$rating', 0] } },
+          ratingCount: { $sum: { $cond: [{ $gt: ['$rating', 0] }, 1, 0] } }
+      }}
+    ]);
+
+    let totalLikes = 0, totalDislikes = 0, avgRating = 0, ratingCount = 0;
+    if (stats.length > 0) {
+      totalLikes = stats[0].totalLikes;
+      totalDislikes = stats[0].totalDislikes;
+      ratingCount = stats[0].ratingCount;
+      avgRating = ratingCount > 0 ? (stats[0].ratingSum / ratingCount).toFixed(1) : 0;
+    }
+
+    targetUser.totalLikes = totalLikes;
+    targetUser.totalDislikes = totalDislikes;
+    targetUser.ratingCount = ratingCount;
+    targetUser.avgRating = avgRating;
+    await targetUser.save();
+
+    res.json({ success: true, myInteraction: interaction, stats: { totalLikes, totalDislikes, avgRating, ratingCount } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

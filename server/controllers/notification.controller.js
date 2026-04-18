@@ -33,7 +33,11 @@ exports.markAllRead = async (req, res) => {
 
 exports.createNotification = async (userId, message, type = 'info') => {
   try {
-    await Notification.create({ userId, message, type });
+    const notif = await Notification.create({ userId, message, type });
+    
+    // Realtime Push Event via WebSockets
+    const io = require('../socket').getIo();
+    io.to(`user_${userId}`).emit('new_notification', notif);
   } catch (err) {
     console.error('Notification creation failed:', err);
   }

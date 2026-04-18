@@ -1,249 +1,211 @@
-import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Send, Award, Calendar, BookOpen, GraduationCap, ArrowLeft, ShieldCheck, Mail } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { User, Calendar, BookOpen, Download, LayoutDashboard, ChevronLeft, Award, FileText, ThumbsUp, ThumbsDown, Star } from 'lucide-react'
 import api from '../services/api'
+import { timeAgo } from '../components/shared/utils'
 import useAuthStore from '../store/authStore'
-import { Skeleton, Stars, timeAgo } from '../components/shared/utils'
+import toast from 'react-hot-toast'
 
 export default function PublicProfile() {
   const { id } = useParams()
-  const { user: currentUser } = useAuthStore()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
-  const [reviews, setReviews] = useState([])
+  const [activity, setActivity] = useState([])
+  const [myInteraction, setMyInteraction] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [rating, setRating] = useState(5)
-  const [comment, setComment] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const { user } = useAuthStore()
 
   useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      api.get(`/auth/user/${id}`),
-      api.get(`/users/${id}/reviews`)
-    ]).then(([u, r]) => {
-      setProfile(u.data.user)
-      setReviews(r.data.reviews)
-    }).catch(() => {
-      toast.error('Failed to load profile')
-    }).finally(() => setLoading(false))
+    const fetchUser = async () => {
+      try {
+        const { data } = await api.get(`/users/${id}/profile`)
+        setProfile(data.profile)
+        setActivity(data.recentActivity || [])
+        setMyInteraction(data.myInteraction || null)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUser()
   }, [id])
 
-  const handleReview = async (e) => {
-    e.preventDefault()
-    if (!comment.trim()) return toast.error('Please add a comment')
-    setSubmitting(true)
+  const handleInteract = async (action, rating = undefined) => {
+    if (!user) return toast.error('Login required')
     try {
-      const { data } = await api.post(`/users/${id}/reviews`, { rating, comment })
-      setReviews(prev => [data.review, ...prev])
-      setComment('')
-      toast.success('Review submitted successfully!')
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to submit review')
-    } finally {
-      setSubmitting(false)
+      const { data } = await api.post(`/users/${id}/interact`, { action, rating })
+      setMyInteraction(data.myInteraction)
+      setProfile(prev => ({ ...prev, ...data.stats }))
+    } catch(err) {
+      toast.error(err.response?.data?.message || 'Interaction failed')
     }
   }
 
-  if (loading) return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <Skeleton className="h-40 w-full rounded-2xl" />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 space-y-6">
-          <Skeleton className="h-64 w-full rounded-2xl" />
-        </div>
-        <div className="md:col-span-2 space-y-6">
-          <Skeleton className="h-20 w-full rounded-2xl" />
-          <Skeleton className="h-96 w-full rounded-2xl" />
-        </div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
       </div>
-    </div>
-  )
+    )
+  }
 
-  if (!profile) return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <p className="text-white/40 mb-4 font-display text-lg">Student profile not found</p>
-      <Link to="/dashboard" className="btn-primary">Back to Home</Link>
-    </div>
-  )
+  if (!profile) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center h-full text-center">
+        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+          <User size={32} className="text-white/20" />
+        </div>
+        <h2 className="text-xl font-display font-bold text-white mb-2">User Not Found</h2>
+        <p className="text-sm text-white/50 mb-6">This profile doesn't exist or is unavailable.</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-ink-400 hover:text-ink-300 transition-colors flex items-center gap-1">
+          <ChevronLeft size={16} /> Go Back
+        </button>
+      </div>
+    )
+  }
+
+  const avatar = profile.avatar 
+    ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+    : <span className="text-3xl font-display font-semibold text-ink-200">{profile.name?.[0]?.toUpperCase()}</span>
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8 relative">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-ink-500/5 blur-[120px] -z-10 pointer-events-none" />
-      
-      <Link to={-1} className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors">
-        <ArrowLeft size={16} /> Back
-      </Link>
+    <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
+      <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors mb-2 group">
+        <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back
+      </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: User Card */}
-        <div className="lg:col-span-1 space-y-6">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="card p-6 text-center">
-            <div className="relative inline-block mx-auto mb-4">
-              <div className="w-24 h-24 rounded-3xl bg-ink-700 flex items-center justify-center overflow-hidden ring-4 ring-border shadow-2xl">
-                {profile.avatar ? (
-                  <img src={profile.avatar} className="w-full h-full object-cover" alt="" />
-                ) : (
-                  <span className="text-4xl font-black text-ink-300">{profile.name?.[0].toUpperCase()}</span>
-                )}
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center border-4 border-card text-white">
-                <ShieldCheck size={16} />
-              </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 15, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="card p-6 md:p-8 relative overflow-hidden"
+      >
+        {/* Subtle background glow mapping */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-ink-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left relative z-10">
+          <div className="w-24 h-24 rounded-[32px] bg-ink-800 flex items-center justify-center shrink-0 shadow-[0_10px_30px_rgba(0,0,0,0.5)] overflow-hidden ring-4 ring-ink-500/10">
+            {avatar}
+          </div>
+          
+          <div className="flex-1">
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 justify-center md:justify-start">
+              <h1 className="text-[28px] leading-none font-display font-bold text-white tracking-tight">{profile.name}</h1>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-xl font-black
+                ${profile.role === 'teacher' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 
+                  profile.role === 'admin' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 
+                  'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                {profile.role}
+              </span>
             </div>
-            
-            <h1 className="font-display font-bold text-2xl text-white mb-1">{profile.name}</h1>
-            <p className="text-ink-400 font-semibold text-xs uppercase tracking-widest mb-4">
-              {profile.role === 'student' ? 'Verified Student' : 'Instructor'}
+
+            <p className="text-[15px] leading-relaxed text-white/60 mb-6 max-w-2xl mx-auto md:mx-0 font-medium">
+              {profile.bio || "This user hasn't added a bio yet."}
             </p>
 
-            <div className="space-y-3 py-4 border-t border-white/5">
-              <div className="flex items-center gap-3 text-white/60 text-sm">
-                <GraduationCap size={16} className="text-ink-400" />
-                <span className="truncate">{profile.course || 'Not specified'}</span>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-white/50 bg-white/5 py-2 px-3.5 rounded-xl border border-white/5 shadow-inner">
+                <Calendar size={15} className="text-ink-400" />
+                Joined {new Date(profile.joined || Date.now()).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
               </div>
-              <div className="flex items-center gap-3 text-white/60 text-sm">
-                <Mail size={16} className="text-ink-400" />
-                <span className="truncate text-xs">{profile.email}</span>
-              </div>
-              <div className="flex items-center gap-3 text-white/60 text-sm">
-                <Calendar size={16} className="text-ink-400" />
-                <span>Joined {new Date(profile.createdAt).toLocaleDateString()}</span>
-              </div>
+              {(profile.course || profile.semester) && (
+                <div className="flex items-center gap-2 text-sm font-medium text-white/50 bg-white/5 py-2 px-3.5 rounded-xl border border-white/5 shadow-inner">
+                  <LayoutDashboard size={15} className="text-ink-400" />
+                  {profile.course} {profile.semester ? `• Semester ${profile.semester}` : ''}
+                </div>
+              )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-2">
-              <div className="p-3 rounded-2xl bg-white/[0.03]">
-                <p className="text-xs text-white/30 mb-1">Reputation</p>
-                <div className="flex items-center justify-center gap-1 text-ink-400 font-bold">
-                  <Star size={14} fill="currentColor" />
-                  {profile.avgRating > 0 ? profile.avgRating.toFixed(1) : 'N/A'}
+            {/* Interaction Buttons */}
+            {user && user._id !== id && (
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-5">
+                <button onClick={() => handleInteract(myInteraction?.action === 'like' ? 'none' : 'like')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'like' ? 'bg-ink-500/20 border-ink-500/30 text-ink-300' : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'}`}>
+                  <ThumbsUp size={16} className={myInteraction?.action === 'like' ? "fill-ink-500" : ""} />
+                  <span className="text-sm font-semibold">Like</span>
+                </button>
+                <button onClick={() => handleInteract(myInteraction?.action === 'dislike' ? 'none' : 'dislike')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'dislike' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'}`}>
+                  <ThumbsDown size={16} className={myInteraction?.action === 'dislike' ? "fill-red-500" : ""} />
+                  <span className="text-sm font-semibold">Dislike</span>
+                </button>
+                <div className="flex bg-white/5 px-3 py-2 rounded-xl border border-white/5 items-center gap-1.5 ml-1">
+                  {[1,2,3,4,5].map(star => (
+                    <Star key={star} onClick={() => handleInteract(undefined, star)} className={`cursor-pointer transition-colors ${myInteraction?.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-white/20 hover:text-yellow-400/50'}`} size={16} />
+                  ))}
                 </div>
               </div>
-              <div className="p-3 rounded-2xl bg-white/[0.03]">
-                <p className="text-xs text-white/30 mb-1">Credits</p>
-                <div className="flex items-center justify-center gap-1 text-ink-300 font-bold">
-                  <Award size={14} />
-                  {profile.credits}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            )}
 
-          {profile.bio && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} 
-              className="card p-5">
-              <h3 className="text-sm font-semibold text-white/60 mb-3 uppercase tracking-wider">About</h3>
-              <p className="text-sm text-white/50 leading-relaxed font-medium">"{profile.bio}"</p>
-            </motion.div>
-          )}
+          </div>
         </div>
 
-        {/* Right Column: Reviews & Statistics */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-             <div className="card p-4 flex flex-col items-center justify-center text-center bg-gradient-to-br from-ink-500/10 to-transparent">
-                <p className="text-2xl font-black text-white">{profile.totalUploads}</p>
-                <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">uploads</p>
-             </div>
-             <div className="card p-4 flex flex-col items-center justify-center text-center bg-gradient-to-br from-cyan-500/10 to-transparent">
-                <p className="text-2xl font-black text-white">{profile.totalDownloads}</p>
-                <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">downloads</p>
-             </div>
-             <div className="card p-4 flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1 bg-gradient-to-br from-purple-500/10 to-transparent">
-                <p className="text-2xl font-black text-white">{profile.ratingCount}</p>
-                <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-1">peer reviews</p>
-             </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mt-8 pt-8 relative z-10 border-t border-white/[0.08]">
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <BookOpen size={22} className="text-ink-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalUploads || 0}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Contributions</p>
           </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <Download size={22} className="text-ink-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalDownloads || 0}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Downloads</p>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <Award size={22} className="text-ink-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{(profile.totalDownloads || 0) * 3 + (profile.totalUploads || 0) * 15}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Total Rep</p>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <ThumbsUp size={22} className="text-ink-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalLikes || 0}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Likes</p>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <ThumbsDown size={22} className="text-red-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalDislikes || 0}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Dislikes</p>
+          </div>
+          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+            <Star size={22} className="text-yellow-400 mb-3 opacity-90" />
+            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.avgRating || 0}</p>
+            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">{profile.ratingCount || 0} Ratings</p>
+          </div>
+        </div>
+      </motion.div>
 
-          {/* Submit Review */}
-          {currentUser?._id !== profile._id && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-6">
-              <h3 className="font-display font-bold text-white mb-4 flex items-center gap-2">
-                <Send size={18} className="text-ink-400" /> Evaluate Student
-              </h3>
-              <form onSubmit={handleReview} className="space-y-4">
-                <div>
-                  <label className="text-xs text-white/40 block mb-2 font-medium uppercase tracking-wider">Reliability Score</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <button key={i} type="button" onClick={() => setRating(i)} 
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                          i <= rating ? 'bg-ink-500 text-white shadow-lg shadow-ink-500/20 scale-110' : 'bg-white/5 text-white/20'
-                        }`}>
-                        <Star size={18} fill={i <= rating ? "currentColor" : "none"} />
-                      </button>
-                    ))}
+      {profile.role !== 'student' && activity.length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300, delay: 0.1 }}
+          className="space-y-4 relative"
+        >
+          <div className="flex items-center gap-2 px-2 mt-4">
+            <div className="w-1.5 h-6 bg-ink-500 rounded-full" />
+            <h2 className="text-[19px] font-display font-bold text-white">Recent Uploads</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {activity.map(item => (
+              <Link key={item._id} to={`/resources/${item._id}`} className="card p-4 hover:border-ink-500/30 transition-all duration-300 group hover:-translate-y-1 shadow-lg hover:shadow-ink-500/10">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-[14px] bg-ink-500/10 flex items-center justify-center group-hover:bg-ink-500/20 transition-colors shrink-0 border border-ink-500/10">
+                    <FileText size={16} className="text-ink-400 group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div className="min-w-0 pr-2">
+                    <h3 className="text-[15px] font-semibold text-white/90 truncate group-hover:text-ink-400 transition-colors leading-tight mb-1">{item.title}</h3>
+                    <div className="flex items-center gap-1.5 text-[12px] text-white/40 font-medium">
+                      <span className="truncate">{item.subject}</span>
+                      <span className="shrink-0">•</span>
+                      <span className="shrink-0">{timeAgo(item.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs text-white/40 block mb-2 font-medium uppercase tracking-wider">Peer Feedback</label>
-                  <textarea 
-                    className="input h-24 resize-none leading-relaxed" 
-                    placeholder="Provide constructive feedback about this student's contributions, resources, or collaboration…"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                  />
-                </div>
-                <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
-                  {submitting ? (
-                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : 'Submit Recognition'}
-                </button>
-              </form>
-            </motion.div>
-          )}
-
-          {/* Review List */}
-          <div className="space-y-4">
-            <h3 className="font-display font-bold text-white flex items-center gap-2">
-              <BookOpen size={18} className="text-ink-400" /> Recent Recognition
-            </h3>
-            <div className="space-y-3">
-              <AnimatePresence mode="popLayout">
-                {reviews.length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10 card bg-white/[0.01]">
-                    <p className="text-white/30 text-sm italic">No feedback received for this student yet.</p>
-                  </motion.div>
-                ) : (
-                  reviews.map((r, i) => (
-                    <motion.div 
-                      key={r._id} 
-                      initial={{ opacity: 0, x: -10 }} 
-                      animate={{ opacity: 1, x: 0 }} 
-                      transition={{ delay: i * 0.05 }}
-                      className="card p-4 space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden">
-                            {r.reviewer?.avatar ? (
-                              <img src={r.reviewer.avatar} className="w-full h-full object-cover" alt="" />
-                            ) : (
-                              <span className="text-xs font-bold text-ink-300">{r.reviewer?.name?.[0]}</span>
-                            )}
-                          </div>
-                          <div>
-                            <Link to={`/profile/${r.reviewer?._id}`} className="text-sm font-semibold text-white hover:text-ink-400 transition-colors">
-                              {r.reviewer?.name}
-                            </Link>
-                            <p className="text-[10px] text-white/40 uppercase font-bold">{timeAgo(r.createdAt)}</p>
-                          </div>
-                        </div>
-                        <Stars rating={r.rating} size={12} />
-                      </div>
-                      <p className="text-sm text-white/60 leading-relaxed italic pr-4">
-                        "{r.comment}"
-                      </p>
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
-            </div>
+              </Link>
+            ))}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      )}
     </div>
   )
 }

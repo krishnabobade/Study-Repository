@@ -14,10 +14,12 @@ const Browse = lazy(() => import('./pages/Browse'))
 const Upload = lazy(() => import('./pages/Upload'))
 const MyFiles = lazy(() => import('./pages/MyFiles'))
 const Profile = lazy(() => import('./pages/Profile'))
+const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const ResourceDetail = lazy(() => import('./pages/ResourceDetail'))
 const Programs = lazy(() => import('./pages/Programs'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const Terms = lazy(() => import('./pages/Terms'))
+const ParallaxDemo = lazy(() => import('./pages/ParallaxDemo'))
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuthStore()
@@ -62,6 +64,7 @@ export default function App() {
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/demo" element={<ParallaxDemo />} />
           <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route path="dashboard"        element={<Dashboard />} />
             <Route path="browse"           element={<Browse />} />
@@ -69,6 +72,7 @@ export default function App() {
             <Route path="upload"           element={<Upload />} />
             <Route path="my-files"         element={<MyFiles />} />
             <Route path="profile"          element={<Profile />} />
+            <Route path="profile/:id"      element={<PublicProfile />} />
             <Route path="resources/:id"    element={<ResourceDetail />} />
           </Route>
         </Routes>

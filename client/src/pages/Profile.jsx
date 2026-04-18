@@ -106,8 +106,15 @@ export default function Profile() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-border">
-          {[['Total Uploads', user?.totalUploads ?? 0], ['Total Downloads', user?.totalDownloads ?? 0]].map(([label, val]) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5 pt-5 border-t border-border">
+          {[
+            ['Total Uploads', user?.totalUploads ?? 0], 
+            ['Total Downloads', user?.totalDownloads ?? 0],
+            ['Total Likes', user?.totalLikes ?? 0],
+            ['Total Dislikes', user?.totalDislikes ?? 0],
+            ['Avg Rating', user?.avgRating ?? 0],
+            ['Ratings', user?.ratingCount ?? 0]
+          ].map(([label, val]) => (
             <div key={label} className="text-center p-3 rounded-xl bg-white/[0.03]">
               <p className="text-2xl font-display font-bold text-ink-300">{val}</p>
               <p className="text-xs text-white/40 mt-0.5">{label}</p>

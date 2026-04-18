@@ -17,9 +17,28 @@ const resourceSchema = new mongoose.Schema({
   views: { type: Number, default: 0 },
   avgRating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   isApproved: { type: Boolean, default: true },
+  
+  // High-Security & Auth System
+  documentId: { type: String, unique: true, sparse: true },
+  fileHash: { type: String },
+  version: { type: Number, default: 1 },
+  previousVersions: [{
+    version: Number,
+    fileUrl: String,
+    filePublicId: String,
+    fileHash: String,
+    uploadedAt: Date
+  }],
+
+  // AI Content Intelligence
+  aiSummary: { type: String },
+  autoTags: [{ type: String }]
 }, { timestamps: true });
 
-resourceSchema.index({ title: 'text', description: 'text', subject: 'text' });
+resourceSchema.index({ title: 'text', description: 'text', subject: 'text', autoTags: 'text' });
+resourceSchema.index({ fileHash: 1 });
 
 module.exports = mongoose.model('Resource', resourceSchema);

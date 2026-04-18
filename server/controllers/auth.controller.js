@@ -26,13 +26,23 @@ exports.register = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Unauthorized domain. Please use your @mitwpu.edu.in college email.' });
     }
 
-    // Strong password validation
-    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
-    if (!passRegex.test(password)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.' 
-      });
+    // Role-Based Password Access Control
+    if (role === 'teacher') {
+      if (password !== '12345678') {
+        return res.status(403).json({ success: false, message: 'Teacher registration requires the designated faculty system password.' });
+      }
+    } else {
+      if (password === '12345678') {
+        return res.status(403).json({ success: false, message: 'Students cannot use the assigned faculty password.' });
+      }
+      // Strong password validation for students
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
+      if (!passRegex.test(password)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.' 
+        });
+      }
     }
 
     const exists = await User.findOne({ email });
@@ -75,8 +85,22 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
 
     const user = await User.findOne({ email }).select('+password');
-    if (!user || !(await user.comparePassword(password)))
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+
+    // Enforce strict Teacher vs Student authentications
+    if (user.role === 'teacher') {
+      if (password !== '12345678') {
+        return res.status(403).json({ success: false, message: 'Unauthorized teacher access. Invalid faculty password.' });
+      }
+      // System overrides standard hash check if faculty password matches strictly
+    } else {
+      if (password === '12345678') {
+        return res.status(403).json({ success: false, message: 'Students cannot use the faculty override password.' });
+      }
+      if (!(await user.comparePassword(password))) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+    }
 
     const token = signToken(user._id);
     user.password = undefined;

@@ -43,19 +43,21 @@ app.use('/api/users', userRoutes);
 
 const analyticsRoutes = require('./routes/analytics.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const assignmentRoutes = require('./routes/assignment.routes');
+const announcementRoutes = require('./routes/announcement.routes');
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'connected', db: 'ok' }));
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
-  });
-}
+// Serve static assets automatically to run on same port
+app.use(express.static(path.join(__dirname, '../client/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
+});
 
 // MongoDB Connection
 const PORT = process.env.PORT || 5000;
@@ -64,7 +66,11 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/studyrepo'
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected at localhost:27017');
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`));
+    const server = app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`));
+    
+    // Initialize WebSockets
+    const socketFile = require('./socket');
+    socketFile.init(server);
   })
   .catch(err => {
     console.error('❌ MongoDB connection error:', err);
@@ -73,10 +79,16 @@ mongoose.connect(MONGO_URI)
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled Error:', err.message);
-  res.status(err.status || 500).json({
+  console.error('Unhandled Error:', err);
+  
+  const statusCode = err.status || 500;
+  const message = process.env.NODE_ENV === 'production' && statusCode === 500
+    ? 'Internal Server Error' 
+    : err.message || 'Internal Server Error';
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal Server Error'
+    message
   });
 });
 

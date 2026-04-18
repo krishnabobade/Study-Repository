@@ -17,21 +17,47 @@ const NAV = [
   { to: '/profile',   icon: User,            label: 'Profile' },
 ]
 
+import { io } from 'socket.io-client';
+
 export default function DashboardLayout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
 
   useEffect(() => {
+    // Initial fetch
     api.get('/notifications').then(r => {
-      setNotifications(r.data.notifications || [])
-      setUnread(r.data.unreadCount || 0)
-    }).catch(() => {})
-  }, [])
+      setNotifications(r.data.notifications || []);
+      setUnread(r.data.unreadCount || 0);
+    }).catch(console.error);
+
+    // Socket.IO Realtime Connection
+    if (!user) return;
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    socket.emit('join_user_channel', user._id || user.id);
+
+    socket.on('new_notification', (notif) => {
+      setNotifications(prev => [notif, ...prev]);
+      setUnread(prev => prev + 1);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && logoutConfirmOpen) setLogoutConfirmOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [logoutConfirmOpen]);
 
   const handleLogout = () => { logout(); navigate('/login') }
 
@@ -53,7 +79,7 @@ export default function DashboardLayout() {
           <div className="w-9 h-9 rounded-xl bg-ink-500 flex items-center justify-center">
             <BookOpen size={18} className="text-white" />
           </div>
-          <span className="font-display font-bold text-lg text-white">StudyRepo</span>
+          <span className="font-display font-bold text-lg text-white">Study Repository</span>
         </div>
       </div>
 
@@ -103,7 +129,7 @@ export default function DashboardLayout() {
             <p className="text-sm font-medium text-white truncate">{user?.name}</p>
             <p className="text-xs text-white/40 truncate">{user?.email}</p>
           </div>
-          <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-red-400 transition-colors">
+          <button onClick={() => { setLogoutConfirmOpen(true); if (mobile) setSidebarOpen(false); }} className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-red-400 transition-colors">
             <LogOut size={15} />
           </button>
         </div>
@@ -223,6 +249,63 @@ export default function DashboardLayout() {
           </AnimatePresence>
         </main>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {logoutConfirmOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }} 
+              animate={{ opacity: 1, backdropFilter: 'blur(12px)' }} 
+              exit={{ opacity: 0, backdropFilter: 'blur(0px)' }} 
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setLogoutConfirmOpen(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+              className="relative w-full max-w-sm bg-panel/90 backdrop-blur-3xl border border-white/10 rounded-[28px] p-7 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] flex flex-col"
+            >
+              <div className="flex flex-col items-center text-center">
+                <motion.div 
+                  initial={{ rotate: -20, scale: 0.5, opacity: 0 }}
+                  animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
+                  className="w-[56px] h-[56px] rounded-[20px] bg-gradient-to-br from-red-500/20 to-red-600/5 flex items-center justify-center border border-red-500/20 mb-5 shadow-[inset_0_1px_rgba(255,255,255,0.1)] ring-8 ring-red-500/[0.03]"
+                >
+                  <LogOut size={26} className="text-red-400" />
+                </motion.div>
+                <h3 className="text-[20px] font-display font-semibold text-white tracking-tight mb-2">Are you sure you want to log out?</h3>
+                <p className="text-[15px] text-white/50 mb-8 font-medium leading-relaxed px-2">
+                  You will need to sign back in to access your dashboard.
+                </p>
+              </div>
+              
+              <div className="flex gap-3 justify-center w-full">
+                <motion.button 
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setLogoutConfirmOpen(false)}
+                  className="flex-1 py-3 rounded-2xl text-[15px] font-semibold text-white/80 bg-white/5 border border-white/10 shadow-sm transition-colors"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(239,68,68,0.25)", boxShadow: "0 0 30px rgba(239,68,68,0.15)" }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handleLogout}
+                  className="flex-1 py-3 rounded-2xl text-[15px] font-bold text-red-400 bg-red-500/15 border border-red-500/20 transition-all shadow-sm"
+                >
+                  Logout
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

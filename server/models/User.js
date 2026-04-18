@@ -16,8 +16,13 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String },
   role: { type: String, enum: ['student', 'teacher', 'admin'], default: 'student' },
   isVerified: { type: Boolean, default: true },
-  totalUploads: { type: Number, default: 0 },
   totalDownloads: { type: Number, default: 0 },
+  savedResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
+  viewedResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
+  totalLikes: { type: Number, default: 0 },
+  totalDislikes: { type: Number, default: 0 },
+  avgRating: { type: Number, default: 0 },
+  ratingCount: { type: Number, default: 0 }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

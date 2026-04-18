@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Download, Eye, Calendar, User, ArrowLeft,
-  Star, Send, ExternalLink, Tag
+  Star, Send, ExternalLink, Tag, ThumbsUp, ThumbsDown, Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
@@ -13,6 +13,7 @@ import { Skeleton } from '../components/shared/utils'
 
 export default function ResourceDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [resource, setResource] = useState(null)
   const [comments, setComments] = useState([])
@@ -38,6 +39,33 @@ export default function ResourceDetail() {
       window.open(data.fileUrl, '_blank')
       setResource(r => ({ ...r, downloads: r.downloads + 1 }))
     } catch { toast.error('Download failed') }
+  }
+
+  const handleInteract = async (action) => {
+    if (!user) return toast.error('Login required to interact')
+    
+    // Determine toggle logic
+    let targetAction = action;
+    if (action === 'like' && resource.likes?.includes(user._id)) targetAction = 'none';
+    if (action === 'dislike' && resource.dislikes?.includes(user._id)) targetAction = 'none';
+
+    try {
+      const { data } = await api.post(`/resources/${id}/interact`, { action: targetAction })
+      setResource(r => ({ ...r, likes: data.likes, dislikes: data.dislikes }))
+    } catch (err) {
+      toast.error('Failed to update interaction')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you securely authorizing the permanent deletion of this academic material? This action cannot be officially undone.')) return;
+    try {
+      await api.delete(`/resources/${id}`)
+      toast.success('Resource successfully deleted and removed from system.')
+      navigate('/browse')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete resource')
+    }
   }
 
   const handleSubmitComment = async e => {
@@ -140,12 +168,32 @@ export default function ResourceDetail() {
           </div>
         </div>
 
+        {/* Upload Stats Addon for Liking */}
+        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border">
+          <button onClick={() => handleInteract('like')} className={`btn ${resource.likes?.includes(user?._id) ? 'bg-ink-500/20 text-ink-300 border border-ink-500/30' : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
+            <ThumbsUp size={16} className={resource.likes?.includes(user?._id) ? "fill-ink-500" : ""} />
+            <span className="font-semibold text-sm">{resource.likes?.length || 0}</span>
+          </button>
+          <button onClick={() => handleInteract('dislike')} className={`btn ${resource.dislikes?.includes(user?._id) ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
+            <ThumbsDown size={16} className={resource.dislikes?.includes(user?._id) ? "fill-red-500" : ""} />
+            <span className="font-semibold text-sm">{resource.dislikes?.length || 0}</span>
+          </button>
+        </div>
+
         {/* Actions */}
         <div className="flex gap-3 mt-5">
           <button onClick={handleDownload}
             className="btn-primary flex-1 justify-center py-3">
             <Download size={16} /> Download
           </button>
+          
+          {(user?.role === 'teacher' || user?.role === 'admin' || user?._id === resource.uploadedBy?._id) && (
+            <button onClick={handleDelete} title="Moderation Delete"
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 hover:border-red-500/30 transition-all rounded-xl px-4 py-3 flex items-center justify-center">
+              <Trash2 size={16} />
+            </button>
+          )}
+
           <a href={resource.fileUrl} target="_blank" rel="noreferrer"
             className="btn-ghost border border-border px-4 py-3">
             <ExternalLink size={15} />
