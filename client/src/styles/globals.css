@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply bg-surface text-white font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-700; }
+
+  ::selection { @apply bg-ink-500/40 text-white; }
+}
+
+@layer components {
+  .glass {
+    background: rgba(30, 27, 46, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .glass-light {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .shimmer-bg {
+    background: linear-gradient(90deg,
+      rgba(255,255,255,0.03) 0%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(255,255,255,0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+           bg-ink-500 hover:bg-ink-400 active:bg-ink-600
+           text-white font-medium text-sm
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl
+           text-white/60 hover:text-white hover:bg-white/5
+           font-medium text-sm transition-all duration-200;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl
+           bg-red-500/10 hover:bg-red-500/20 text-red-400
+           font-medium text-sm transition-all duration-200;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl
+    bg-white/5 border border-white/10
+    text-white placeholder-white/50
+    focus:outline-none focus:border-ink-500 focus:ring-1 focus:ring-ink-500/50
+    transition-all duration-200 text-sm;
+  }
+
+  .select {
+    @apply input appearance-none cursor-pointer;
+  }
+
+  .select option,
+  select option,
+  optgroup {
+    @apply text-black bg-white;
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+
+  .card {
+    @apply bg-card border border-border rounded-2xl;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
+
+/* Page transition wrapper */
+.page-wrapper {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* Noise overlay for depth */
+.noise::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
