@@ -78,7 +78,7 @@ const UserInteraction = require('../models/UserInteraction');
 exports.getPublicProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .select('name avatar bio role joined course semester yearOfStudy totalUploads totalDownloads totalLikes totalDislikes avgRating ratingCount');
+      .select('name avatar bio role joined course semester yearOfStudy totalUploads totalDownloads totalLikes totalDislikes documentLikes documentDislikes avgRating ratingCount');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     // Fetch user's public activity

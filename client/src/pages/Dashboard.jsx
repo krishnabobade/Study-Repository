@@ -24,7 +24,7 @@ function StatCard({ icon: Icon, label, value, delta, color }) {
     <motion.div 
       whileHover={{ y: -6, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="card p-5 relative overflow-hidden group cursor-pointer border border-white/5 hover:border-white/20 transition-colors"
+      className="card p-5 relative overflow-hidden group cursor-pointer border border-white/5 hover:border-border transition-colors"
     >
       {/* Subtle background glow on hover */}
       <div className={`absolute -right-6 -top-6 w-24 h-24 blur-2xl rounded-full ${color.replace('/30','/20').replace('/20','/10')} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -35,16 +35,16 @@ function StatCard({ icon: Icon, label, value, delta, color }) {
           animate={{ rotate: 0 }}
           className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${color}`}
         >
-          <Icon size={18} className="text-white" />
+          <Icon size={18} className="text-text-main" />
         </motion.div>
         {delta && <span className="text-xs text-green-400 font-medium bg-green-500/10 px-2 py-1 rounded-full">{delta}</span>}
       </div>
       
       <div className="relative z-10">
-        <p className="text-3xl font-display font-bold text-white bg-clip-text text-transparent bg-gradient-to-br from-white to-white/70">
+        <p className="text-3xl font-display font-bold text-text-main bg-clip-text">
           {value ?? <Skeleton className="w-12 h-8" />}
         </p>
-        <p className="text-xs text-white/50 mt-1 font-medium tracking-wide uppercase">{label}</p>
+        <p className="text-xs text-text-muted mt-1 font-medium tracking-wide uppercase">{label}</p>
       </div>
     </motion.div>
   )
@@ -92,10 +92,10 @@ export default function Dashboard() {
         animate={{ opacity: 1, x: 0 }} 
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <h1 className="font-display font-bold text-3xl text-white">
-          Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-ink-400 to-ink-200">{user?.name?.split(' ')[0]}</span> 👋
+        <h1 className="font-display font-bold text-3xl text-text-main">
+          Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-ink-400 to-ink-500">{user?.name?.split(' ')[0]}</span> 👋
         </h1>
-        <p className="text-white/50 text-sm mt-2 font-medium">Ready to explore and share study resources?</p>
+        <p className="text-text-muted text-sm mt-2 font-medium">Ready to explore and share study resources?</p>
       </motion.div>
 
       {/* Stats */}
@@ -123,7 +123,7 @@ export default function Dashboard() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-display font-bold text-lg text-white">Browse by Category</h2>
+          <h2 className="font-display font-bold text-lg text-text-main">Browse by Category</h2>
           <Link to="/browse" className="text-xs font-semibold text-ink-400 hover:text-ink-300 flex items-center gap-1 group transition-colors">
             View all 
             <motion.span animate={{ x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
@@ -139,7 +139,7 @@ export default function Dashboard() {
                 className={`flex flex-col items-center justify-center p-5 rounded-2xl bg-gradient-to-br ${color} border border-white/5
                            hover:shadow-lg hover:shadow-ink-500/10 transition-all duration-300 group`}>
                 <div className="text-3xl mb-3 drop-shadow-md group-hover:scale-110 transition-transform duration-300">{emoji}</div>
-                <p className="text-xs font-semibold text-white/80 group-hover:text-white transition-colors">{label}</p>
+                <p className="text-xs font-semibold text-text-muted group-hover:text-text-main transition-colors">{label}</p>
               </Link>
             </motion.div>
           ))}
@@ -156,7 +156,7 @@ export default function Dashboard() {
           transition={{ duration: 0.5 }}
         >
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-display font-bold text-lg text-white">Recently Uploaded</h2>
+            <h2 className="font-display font-bold text-lg text-text-main">Recently Uploaded</h2>
             <Link to="/browse" className="text-xs font-semibold text-ink-400 hover:text-ink-300 flex items-center gap-1 group">
               View all 
               <motion.span animate={{ x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.5 }}>
@@ -202,7 +202,7 @@ export default function Dashboard() {
             <motion.div animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
               <Flame size={18} className="text-orange-400" />
             </motion.div>
-            <h2 className="font-display font-bold text-lg text-white">Trending Now</h2>
+            <h2 className="font-display font-bold text-lg text-text-main">Trending Now</h2>
           </div>
           
           <div className="card p-2 border border-white/5 bg-white/[0.02]">
@@ -222,12 +222,12 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white/90 truncate group-hover:text-white transition-colors">
+                        <p className="text-sm font-semibold text-text-main/90 truncate group-hover:text-text-main transition-colors">
                           {r.title}
                         </p>
-                        <p className="text-xs font-medium text-white/40 mt-0.5">{r.downloads} downloads</p>
+                        <p className="text-xs font-medium text-text-muted mt-0.5">{r.downloads} downloads</p>
                       </div>
-                      <ArrowRight size={14} className="text-white/20 group-hover:text-ink-400 group-hover:translate-x-1 transition-all" />
+                      <ArrowRight size={14} className="text-text-muted/40 group-hover:text-ink-400 group-hover:translate-x-1 transition-all" />
                     </Link>
                   </motion.div>
                 ))}

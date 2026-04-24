@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
 
 import AnimatedBackground from '../components/AnimatedBackground'
-import { SplineScene } from '../components/ui/splite'
+import ThemeToggle from '../components/shared/ThemeToggle'
 
 const LoginForm = () => {
   const [form, setForm] = useState({ email: '', password: '' })
@@ -51,27 +51,27 @@ const LoginForm = () => {
       <div className="glass rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-ink-500 flex items-center justify-center mb-4 shadow-lg shadow-ink-500/30">
-            <BookOpen size={26} className="text-white" />
+            <BookOpen size={26} className="text-text-main" />
           </div>
-          <h1 className="font-display font-bold text-2xl text-white">Welcome back</h1>
-          <p className="text-white/50 text-sm mt-1">Sign in to your Study Repository</p>
+          <h1 className="font-display font-bold text-2xl text-text-main">Welcome back</h1>
+          <p className="text-text-muted text-sm mt-1">Sign in to your Study Repository</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${!isValidEmail ? 'text-red-400' : 'text-white/30'}`} />
+            <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${!isValidEmail ? 'text-red-400' : 'text-text-muted/30'}`} />
             <input type="email" placeholder="College email (@mitwpu.edu.in)" value={form.email}
               onChange={set('email')} required
               className={`input pl-11 transition-all ${!isValidEmail ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : ''}`} />
           </div>
 
           <div className="relative">
-            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/30 pointer-events-none" />
             <input type={showPass ? 'text' : 'password'} placeholder="Password" value={form.password}
               onChange={set('password')} required
               className="input pl-11 pr-11" />
             <button type="button" onClick={() => setShowPass(s => !s)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/40 hover:text-text-main transition-colors">
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -79,13 +79,13 @@ const LoginForm = () => {
           <button type="submit" disabled={loading}
             className="btn-primary w-full justify-center py-3 text-base mt-2">
             {loading
-              ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ? <span className="w-5 h-5 border-2 border-border border-t-white rounded-full animate-spin" />
               : <>Sign in <ArrowRight size={16} /></>
             }
           </button>
         </form>
 
-        <p className="text-center text-sm text-white/40 mt-6">
+        <p className="text-center text-sm text-text-muted/60 mt-6">
           Don't have an account?{' '}
           <Link to="/register" className="text-ink-400 hover:text-ink-300 font-medium transition-colors">
             Create one
@@ -98,13 +98,15 @@ const LoginForm = () => {
 
 export default function Login() {
   return (
-    <div className="min-h-screen bg-[#070709] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
       
-      {/* Abstract Animated Layer */}
       <div className="absolute inset-0 z-0">
         <AnimatedBackground />
       </div>
 
+      <div className="absolute top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
 
       {/* 3. Extracted Form Container */}
       <LoginForm />

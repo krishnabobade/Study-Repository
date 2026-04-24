@@ -1,4 +1,25 @@
+const fs = require('fs');
+const path = require('path');
 
+const globalsPath = path.join(__dirname, 'src', 'styles', 'globals.css');
+const tailwindPath = path.join(__dirname, 'tailwind.config.js');
+
+let globals = fs.readFileSync(globalsPath, 'utf8');
+globals = globals.replace(/--ink-50:.*?;/g, '--ink-50: 245 244 255;');
+globals = globals.replace(/--ink-100:.*?;/g, '--ink-100: 236 235 255;');
+globals = globals.replace(/--ink-200:.*?;/g, '--ink-200: 221 217 255;');
+globals = globals.replace(/--ink-300:.*?;/g, '--ink-300: 194 186 255;');
+globals = globals.replace(/--ink-400:.*?;/g, '--ink-400: 161 145 255;');
+globals = globals.replace(/--ink-500:.*?;/g, '--ink-500: 132 103 255;');
+globals = globals.replace(/--ink-600:.*?;/g, '--ink-600: 101 88 245;');
+globals = globals.replace(/--ink-700:.*?;/g, '--ink-700: 84 71 225;');
+globals = globals.replace(/--ink-800:.*?;/g, '--ink-800: 70 57 185;');
+globals = globals.replace(/--ink-900:.*?;/g, '--ink-900: 60 50 149;');
+globals = globals.replace(/--ink-950:.*?;/g, '--ink-950: 36 29 99;');
+
+// But wait, the above replaced BOTH dark and light mode.
+// Let's rewrite the specific sections.
+fs.writeFileSync(globalsPath, `
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -166,3 +187,20 @@ a[href*="splinetool"], a[href*="spline.design"], #logo {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+`);
+
+let tailwind = fs.readFileSync(tailwindPath, 'utf8');
+tailwind = tailwind.replace(/ink: {[\s\S]*?},/, `ink: {
+          50:  'rgb(var(--ink-50) / <alpha-value>)',
+          100: 'rgb(var(--ink-100) / <alpha-value>)',
+          200: 'rgb(var(--ink-200) / <alpha-value>)',
+          300: 'rgb(var(--ink-300) / <alpha-value>)',
+          400: 'rgb(var(--ink-400) / <alpha-value>)',
+          500: 'rgb(var(--ink-500) / <alpha-value>)',
+          600: 'rgb(var(--ink-600) / <alpha-value>)',
+          700: 'rgb(var(--ink-700) / <alpha-value>)',
+          800: 'rgb(var(--ink-800) / <alpha-value>)',
+          900: 'rgb(var(--ink-900) / <alpha-value>)',
+          950: 'rgb(var(--ink-950) / <alpha-value>)',
+        },`);
+fs.writeFileSync(tailwindPath, tailwind);

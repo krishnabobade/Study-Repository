@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import React, { useEffect, Suspense, lazy } from 'react'
 import useAuthStore from './store/authStore'
+import useThemeStore from './store/themeStore'
 
 import DashboardLayout from './components/layout/DashboardLayout'
 import CookieConsent from './components/shared/CookieConsent'
@@ -41,14 +42,24 @@ function PublicRoute({ children }) {
 
 export default function App() {
   const fetchMe = useAuthStore(s => s.fetchMe)
-  useEffect(() => { fetchMe() }, [])
+  const initTheme = useThemeStore(s => s.initTheme)
+  const mode = useThemeStore(s => s.mode)
+
+  useEffect(() => { 
+    fetchMe()
+    initTheme()
+  }, [])
 
   return (
     <BrowserRouter>
       <Toaster
         position="top-right"
         toastOptions={{
-          style: { background: '#1e1b2e', color: '#fff', border: '1px solid #2a2740' },
+          style: { 
+            background: mode === 'dark' ? '#1e1b2e' : '#ffffff', 
+            color: mode === 'dark' ? '#fff' : '#1e293b', 
+            border: mode === 'dark' ? '1px solid #2a2740' : '1px solid #e2e8f0' 
+          },
           success: { iconTheme: { primary: '#6558f5', secondary: '#fff' } },
         }}
       />

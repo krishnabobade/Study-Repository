@@ -6,6 +6,7 @@ import api from '../services/api'
 import { timeAgo } from '../components/shared/utils'
 import useAuthStore from '../store/authStore'
 import toast from 'react-hot-toast'
+import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function PublicProfile() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export default function PublicProfile() {
   const [myInteraction, setMyInteraction] = useState(null)
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
+  const [previewFile, setPreviewFile] = useState(null)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,11 +56,11 @@ export default function PublicProfile() {
   if (!profile) {
     return (
       <div className="p-8 flex flex-col items-center justify-center h-full text-center">
-        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-          <User size={32} className="text-white/20" />
+        <div className="w-16 h-16 bg-panel border border-border rounded-full flex items-center justify-center mb-4">
+          <User size={32} className="text-text-muted/20" />
         </div>
-        <h2 className="text-xl font-display font-bold text-white mb-2">User Not Found</h2>
-        <p className="text-sm text-white/50 mb-6">This profile doesn't exist or is unavailable.</p>
+        <h2 className="text-xl font-display font-bold text-text-main mb-2">User Not Found</h2>
+        <p className="text-sm text-text-muted mb-6">This profile doesn't exist or is unavailable.</p>
         <button onClick={() => navigate(-1)} className="text-sm text-ink-400 hover:text-ink-300 transition-colors flex items-center gap-1">
           <ChevronLeft size={16} /> Go Back
         </button>
@@ -72,7 +74,7 @@ export default function PublicProfile() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
-      <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white transition-colors mb-2 group">
+      <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-main transition-colors mb-2 group">
         <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back
       </button>
 
@@ -92,7 +94,7 @@ export default function PublicProfile() {
           
           <div className="flex-1">
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3 justify-center md:justify-start">
-              <h1 className="text-[28px] leading-none font-display font-bold text-white tracking-tight">{profile.name}</h1>
+              <h1 className="text-[28px] leading-none font-display font-bold text-text-main tracking-tight">{profile.name}</h1>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-xl font-black
                 ${profile.role === 'teacher' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 
                   profile.role === 'admin' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 
@@ -101,17 +103,17 @@ export default function PublicProfile() {
               </span>
             </div>
 
-            <p className="text-[15px] leading-relaxed text-white/60 mb-6 max-w-2xl mx-auto md:mx-0 font-medium">
+            <p className="text-[15px] leading-relaxed text-text-muted mb-6 max-w-2xl mx-auto md:mx-0 font-medium">
               {profile.bio || "This user hasn't added a bio yet."}
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-white/50 bg-white/5 py-2 px-3.5 rounded-xl border border-white/5 shadow-inner">
+              <div className="flex items-center gap-2 text-sm font-medium text-text-muted bg-panel border border-border py-2 px-3.5 rounded-xl shadow-inner">
                 <Calendar size={15} className="text-ink-400" />
                 Joined {new Date(profile.joined || Date.now()).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
               </div>
               {(profile.course || profile.semester) && (
-                <div className="flex items-center gap-2 text-sm font-medium text-white/50 bg-white/5 py-2 px-3.5 rounded-xl border border-white/5 shadow-inner">
+                <div className="flex items-center gap-2 text-sm font-medium text-text-muted bg-panel border border-border py-2 px-3.5 rounded-xl shadow-inner">
                   <LayoutDashboard size={15} className="text-ink-400" />
                   {profile.course} {profile.semester ? `• Semester ${profile.semester}` : ''}
                 </div>
@@ -121,17 +123,17 @@ export default function PublicProfile() {
             {/* Interaction Buttons */}
             {user && user._id !== id && (
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-5">
-                <button onClick={() => handleInteract(myInteraction?.action === 'like' ? 'none' : 'like')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'like' ? 'bg-ink-500/20 border-ink-500/30 text-ink-300' : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'}`}>
+                <button onClick={() => handleInteract(myInteraction?.action === 'like' ? 'none' : 'like')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'like' ? 'bg-ink-500/20 border-ink-500/30 text-ink-300' : 'bg-panel border-border text-text-muted hover:bg-panel/80'}`}>
                   <ThumbsUp size={16} className={myInteraction?.action === 'like' ? "fill-ink-500" : ""} />
                   <span className="text-sm font-semibold">Like</span>
                 </button>
-                <button onClick={() => handleInteract(myInteraction?.action === 'dislike' ? 'none' : 'dislike')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'dislike' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-white/5 border-white/5 text-white/60 hover:bg-white/10'}`}>
+                <button onClick={() => handleInteract(myInteraction?.action === 'dislike' ? 'none' : 'dislike')} className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border ${myInteraction?.action === 'dislike' ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-panel border-border text-text-muted hover:bg-panel/80'}`}>
                   <ThumbsDown size={16} className={myInteraction?.action === 'dislike' ? "fill-red-500" : ""} />
                   <span className="text-sm font-semibold">Dislike</span>
                 </button>
-                <div className="flex bg-white/5 px-3 py-2 rounded-xl border border-white/5 items-center gap-1.5 ml-1">
+                <div className="flex bg-panel px-3 py-2 rounded-xl border border-border items-center gap-1.5 ml-1">
                   {[1,2,3,4,5].map(star => (
-                    <Star key={star} onClick={() => handleInteract(undefined, star)} className={`cursor-pointer transition-colors ${myInteraction?.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-white/20 hover:text-yellow-400/50'}`} size={16} />
+                    <Star key={star} onClick={() => handleInteract(undefined, star)} className={`cursor-pointer transition-colors ${myInteraction?.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-text-muted hover:text-yellow-400/50'}`} size={16} />
                   ))}
                 </div>
               </div>
@@ -141,35 +143,35 @@ export default function PublicProfile() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mt-8 pt-8 relative z-10 border-t border-white/[0.08]">
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <BookOpen size={22} className="text-ink-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalUploads || 0}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Contributions</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{profile.totalUploads || 0}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Contributions</p>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <Download size={22} className="text-ink-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalDownloads || 0}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Downloads</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{profile.totalDownloads || 0}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Downloads</p>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <Award size={22} className="text-ink-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{(profile.totalDownloads || 0) * 3 + (profile.totalUploads || 0) * 15}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Total Rep</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{(profile.totalDownloads || 0) * 3 + (profile.totalUploads || 0) * 15 + ((profile.documentLikes || 0) * 5)}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Total Rep</p>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <ThumbsUp size={22} className="text-ink-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalLikes || 0}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Likes</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{(profile.totalLikes || 0) + (profile.documentLikes || 0)}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Total Likes</p>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <ThumbsDown size={22} className="text-red-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.totalDislikes || 0}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">Dislikes</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{(profile.totalDislikes || 0) + (profile.documentDislikes || 0)}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Dislikes</p>
           </div>
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
+          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <Star size={22} className="text-yellow-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-white mb-2">{profile.avgRating || 0}</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-widest font-bold">{profile.ratingCount || 0} Ratings</p>
+            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{profile.avgRating || 0}</p>
+            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">{profile.ratingCount || 0} Ratings</p>
           </div>
         </div>
       </motion.div>
@@ -183,7 +185,7 @@ export default function PublicProfile() {
         >
           <div className="flex items-center gap-2 px-2 mt-4">
             <div className="w-1.5 h-6 bg-ink-500 rounded-full" />
-            <h2 className="text-[19px] font-display font-bold text-white">Recent Uploads</h2>
+            <h2 className="text-[19px] font-display font-bold text-text-main">Recent Uploads</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activity.map(item => (
@@ -192,19 +194,41 @@ export default function PublicProfile() {
                   <div className="w-10 h-10 rounded-[14px] bg-ink-500/10 flex items-center justify-center group-hover:bg-ink-500/20 transition-colors shrink-0 border border-ink-500/10">
                     <FileText size={16} className="text-ink-400 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="min-w-0 pr-2">
-                    <h3 className="text-[15px] font-semibold text-white/90 truncate group-hover:text-ink-400 transition-colors leading-tight mb-1">{item.title}</h3>
-                    <div className="flex items-center gap-1.5 text-[12px] text-white/40 font-medium">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <h3 className="text-[15px] font-semibold text-text-main/90 truncate group-hover:text-ink-400 transition-colors leading-tight mb-1">{item.title}</h3>
+                    <div className="flex items-center gap-1.5 text-[12px] text-text-muted font-medium">
                       <span className="truncate">{item.subject}</span>
                       <span className="shrink-0">•</span>
                       <span className="shrink-0">{timeAgo(item.createdAt)}</span>
                     </div>
                   </div>
+                  <button 
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewFile(item); }}
+                    className="p-1.5 rounded-lg bg-panel border border-border text-text-muted hover:text-text-main transition-all opacity-0 group-hover:opacity-100"
+                    title="Quick Preview"
+                  >
+                    <Eye size={14} />
+                  </button>
                 </div>
               </Link>
             ))}
           </div>
         </motion.div>
+      )}
+
+      {previewFile && (
+        <DocumentViewer
+          url={previewFile.fileUrl}
+          type={previewFile.fileType}
+          title={previewFile.title}
+          onClose={() => setPreviewFile(null)}
+          onDownload={async () => {
+             try {
+               const { data } = await api.post(`/resources/${previewFile._id}/download`)
+               window.open(data.fileUrl, '_blank')
+             } catch { toast.error('Download failed') }
+          }}
+        />
       )}
     </div>
   )

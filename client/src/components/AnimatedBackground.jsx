@@ -127,63 +127,7 @@ const BACKGROUND_ELEMENTS = [
   { Icon: BookCopy, size: 110, x: '98%', y: '12%', b: 'blur-xl', op: 'opacity-70', r: 50, d: 3.7 },
   { Icon: FileText, size: 25, x: '12%', y: '92%', b: 'blur-none', op: 'opacity-100', r: -38, d: 1.8 },
   
-  // Overdrive Set B
-  { Icon: GraduationCap, size: 80, x: '72%', y: '18%', b: 'blur-md', op: 'opacity-90', r: 18, d: 2.6 },
-  { Icon: Code, size: 35, x: '48%', y: '72%', b: 'blur-sm', op: 'opacity-100', r: -45, d: 0.2 },
-  { Icon: Box, size: 105, x: '8%', y: '65%', b: 'blur-lg', op: 'opacity-70', r: 22, d: 3.9 },
-  { Icon: PenTool, size: 28, x: '28%', y: '42%', b: 'blur-none', op: 'opacity-100', r: 15, d: 1.1 },
-  { Icon: Server, size: 60, x: '62%', y: '38%', b: 'blur-sm', op: 'opacity-100', r: -32, d: 4.8 },
-  { Icon: Globe, size: 45, x: '92%', y: '68%', b: 'blur-md', op: 'opacity-90', r: 8, d: 0.7 },
-  { Icon: Layout, size: 75, x: '38%', y: '88%', b: 'blur-lg', op: 'opacity-70', r: -25, d: 2.3 },
-  { Icon: Book, size: 50, x: '55%', y: '98%', b: 'blur-sm', op: 'opacity-100', r: 38, d: 3.5 },
-  { Icon: Monitor, size: 32, x: '78%', y: '5%', b: 'blur-none', op: 'opacity-100', r: -12, d: 1.6 },
-  { Icon: FileText, size: 88, x: '85%', y: '78%', b: 'blur-xl', op: 'opacity-70', r: 45, d: 0.5 },
-  
-  // Overdrive Set C
-  { Icon: Box, size: 42, x: '5%', y: '28%', b: 'blur-sm', op: 'opacity-100', r: -18, d: 3.1 },
-  { Icon: Code, size: 68, x: '25%', y: '18%', b: 'blur-md', op: 'opacity-90', r: 25, d: 1.9 },
-  { Icon: Server, size: 115, x: '58%', y: '52%', b: 'blur-xl', op: 'opacity-70', r: -35, d: 4.4 },
-  { Icon: Globe, size: 35, x: '45%', y: '2%', b: 'blur-none', op: 'opacity-100', r: 12, d: 0.8 },
-  { Icon: BookOpen, size: 72, x: '88%', y: '92%', b: 'blur-lg', op: 'opacity-70', r: -8, d: 2.5 },
-  { Icon: BookCopy, size: 25, x: '15%', y: '55%', b: 'blur-none', op: 'opacity-100', r: 35, d: 3.8 },
-  { Icon: Layout, size: 55, x: '65%', y: '82%', b: 'blur-sm', op: 'opacity-100', r: -42, d: 1.2 },
-  { Icon: Monitor, size: 90, x: '35%', y: '35%', b: 'blur-lg', op: 'opacity-70', r: 22, d: 0.3 },
-  { Icon: GraduationCap, size: 40, x: '75%', y: '68%', b: 'blur-sm', op: 'opacity-100', r: -15, d: 4.7 },
-  { Icon: PenTool, size: 65, x: '98%', y: '28%', b: 'blur-md', op: 'opacity-90', r: 38, d: 2.0 },
-  
-  // Overdrive Set D (Ultra Dense Overlays)
-  { Icon: Book, size: 82, x: '18%', y: '35%', b: 'blur-lg', op: 'opacity-70', r: -28, d: 1.3 },
-  { Icon: FileText, size: 38, x: '42%', y: '62%', b: 'blur-sm', op: 'opacity-100', r: 15, d: 3.6 },
-  { Icon: Box, size: 50, x: '82%', y: '25%', b: 'blur-md', op: 'opacity-90', r: -45, d: 0.9 },
-  { Icon: Server, size: 30, x: '58%', y: '92%', b: 'blur-none', op: 'opacity-100', r: 8, d: 4.1 },
-  { Icon: Monitor, size: 100, x: '25%', y: '82%', b: 'blur-xl', op: 'opacity-70', r: 32, d: 2.7 },
-  { Icon: Code, size: 45, x: '72%', y: '45%', b: 'blur-sm', op: 'opacity-100', r: -12, d: 0.5 },
-  { Icon: Layout, size: 60, x: '12%', y: '4%', b: 'blur-md', op: 'opacity-90', r: 25, d: 3.4 },
-  { Icon: PenTool, size: 75, x: '95%', y: '58%', b: 'blur-lg', op: 'opacity-70', r: -38, d: 1.8 },
-  { Icon: BookCopy, size: 28, x: '32%', y: '55%', b: 'blur-none', op: 'opacity-100', r: 42, d: 4.6 },
-  { Icon: Globe, size: 55, x: '55%', y: '72%', b: 'blur-sm', op: 'opacity-100', r: -22, d: 2.2 },
-  
-  // Overdrive Set E (Extreme Saturation Final Push)
-  { Icon: GraduationCap, size: 48, x: '8%', y: '48%', b: 'blur-sm', op: 'opacity-100', r: 18, d: 0.8 },
-  { Icon: Box, size: 92, x: '48%', y: '5%', b: 'blur-xl', op: 'opacity-70', r: -35, d: 3.1 },
-  { Icon: Server, size: 35, x: '88%', y: '12%', b: 'blur-none', op: 'opacity-100', r: 12, d: 1.5 },
-  { Icon: FileText, size: 68, x: '22%', y: '95%', b: 'blur-md', op: 'opacity-90', r: 45, d: 4.3 },
-  { Icon: Monitor, size: 25, x: '68%', y: '2%', b: 'blur-none', op: 'opacity-100', r: -8, d: 2.6 },
-  { Icon: BookOpen, size: 85, x: '75%', y: '32%', b: 'blur-lg', op: 'opacity-70', r: 28, d: 0.4 },
-  { Icon: Code, size: 52, x: '38%', y: '75%', b: 'blur-sm', op: 'opacity-100', r: -15, d: 3.7 },
-  { Icon: Layout, size: 40, x: '92%', y: '42%', b: 'blur-sm', op: 'opacity-100', r: 35, d: 1.9 },
-  { Icon: Globe, size: 78, x: '18%', y: '72%', b: 'blur-md', op: 'opacity-90', r: -42, d: 4.0 },
-  { Icon: PenTool, size: 30, x: '45%', y: '88%', b: 'blur-none', op: 'opacity-100', r: 22, d: 0.7 },
-  { Icon: BookCopy, size: 62, x: '62%', y: '65%', b: 'blur-sm', op: 'opacity-100', r: -18, d: 3.3 },
-  { Icon: Server, size: 130, x: '85%', y: '88%', b: 'blur-2xl', op: 'opacity-70', r: 8, d: 2.0 },
-  { Icon: Box, size: 35, x: '5%', y: '88%', b: 'blur-none', op: 'opacity-100', r: 48, d: 4.9 },
-  { Icon: Monitor, size: 55, x: '30%', y: '22%', b: 'blur-md', op: 'opacity-90', r: -25, d: 1.0 },
-  { Icon: Code, size: 70, x: '52%', y: '52%', b: 'blur-lg', op: 'opacity-70', r: 32, d: 2.4 },
-  { Icon: FileText, size: 45, x: '78%', y: '12%', b: 'blur-sm', op: 'opacity-100', r: -12, d: 4.2 },
-  { Icon: GraduationCap, size: 38, x: '12%', y: '22%', b: 'blur-none', op: 'opacity-100', r: 40, d: 0.1 },
-  { Icon: Globe, size: 88, x: '65%', y: '15%', b: 'blur-xl', op: 'opacity-70', r: -30, d: 3.5 },
-  { Icon: Book, size: 58, x: '35%', y: '95%', b: 'blur-md', op: 'opacity-90', r: 15, d: 1.7 },
-  { Icon: PenTool, size: 28, x: '98%', y: '75%', b: 'blur-none', op: 'opacity-100', r: -8, d: 3.0 },
+
 
 
 ];
@@ -191,23 +135,23 @@ const BACKGROUND_ELEMENTS = [
 const AnimatedBackground = memo(() => {
   return (
     <>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.04] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-ink-500/5 via-transparent to-transparent pointer-events-none" />
       <motion.div 
         animate={{ opacity: [0.3, 0.4, 0.3], scale: [1, 1.05, 1] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[10%] left-[20%] w-[800px] h-[800px] bg-white/[0.015] rounded-full blur-[140px] pointer-events-none transform-gpu" 
+        className="absolute top-[10%] left-[20%] w-[800px] h-[800px] bg-ink-500/5 rounded-full blur-[140px] pointer-events-none transform-gpu" 
       />
       <motion.div 
         animate={{ opacity: [0.2, 0.35, 0.2], scale: [1, 1.1, 1] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-[-10%] right-[-10%] w-[900px] h-[900px] bg-[#111115] rounded-full blur-[160px] pointer-events-none shadow-[inset_0_0_100px_rgba(255,255,255,0.02)] transform-gpu" 
+        className="absolute bottom-[-10%] right-[-10%] w-[900px] h-[900px] bg-panel rounded-full blur-[160px] pointer-events-none transform-gpu" 
       />
 
       <div className="absolute inset-0 z-0 opacity-100 pointer-events-none">
         {BACKGROUND_ELEMENTS.map((item, i) => (
           <motion.div
             key={i}
-            className={`absolute ${item.b} ${item.op} text-white pointer-events-none transform-gpu will-change-transform`}
+            className={`absolute ${item.b} ${item.op} text-text-main/5 pointer-events-none transform-gpu will-change-transform`}
             style={{ left: item.x, top: item.y }}
             initial={{ rotate: item.r }}
             animate={{ 

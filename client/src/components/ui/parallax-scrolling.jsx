@@ -55,7 +55,7 @@ export function ParallaxComponent() {
   }, []);
 
   return (
-    <div className="relative h-[200vh] bg-black overflow-hidden font-display" ref={parallaxRef}>
+    <div className="relative h-[200vh] bg-surface overflow-hidden font-display" ref={parallaxRef}>
       <section className="sticky top-0 h-screen w-full overflow-hidden">
         <div className="relative w-full h-full">
           {/* Black line overflow equivalent via gradients */}
@@ -98,15 +98,15 @@ export function ParallaxComponent() {
       </section>
 
       {/* Content Section */}
-      <section className="relative z-30 min-h-screen bg-black flex flex-col items-center justify-center text-center px-4">
-        <Leaf className="w-24 h-24 text-white/10 mb-8" />
-        <h3 className="text-3xl md:text-5xl font-bold text-white mb-6">GSAP x Lenis Integration</h3>
-        <p className="text-white/40 max-w-lg mb-12">
+      <section className="relative z-30 min-h-screen bg-surface flex flex-col items-center justify-center text-center px-4">
+        <Leaf className="w-24 h-24 text-text-muted mb-8" />
+        <h3 className="text-3xl md:text-5xl font-bold text-text-main mb-6">GSAP x Lenis Integration</h3>
+        <p className="text-text-muted max-w-lg mb-12">
           This component perfectly ports the Osmo Parallax effect into Shadcn-ready React structures, complete with Unsplash assets and Tailwind positioning. 
         </p>
-        <div className="osmo-credits mt-10 p-4 rounded-xl border border-white/10 text-white/30 text-sm">
+        <div className="osmo-credits mt-10 p-4 rounded-xl border border-border text-text-muted text-sm">
           <p>
-            Resource originated by <a target="_blank" href="https://www.osmo.supply/" className="text-white hover:underline transition-all font-medium">Osmo</a>
+            Resource originated by <a target="_blank" href="https://www.osmo.supply/" className="text-text-main hover:underline transition-all font-medium">Osmo</a>
           </p>
         </div>
       </section>

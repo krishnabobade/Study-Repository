@@ -10,6 +10,7 @@ import api from '../services/api'
 import useAuthStore from '../store/authStore'
 import { FileTypeBadge, CategoryBadge, Stars, timeAgo, formatSize } from '../components/shared/utils'
 import { Skeleton } from '../components/shared/utils'
+import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function ResourceDetail() {
   const { id } = useParams()
@@ -21,6 +22,7 @@ export default function ResourceDetail() {
   const [newRating,  setNewRating]  = useState(5)
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -91,14 +93,14 @@ export default function ResourceDetail() {
 
   if (!resource) return (
     <div className="p-6 text-center">
-      <p className="text-white/50">Resource not found</p>
+      <p className="text-text-muted">Resource not found</p>
       <Link to="/browse" className="text-ink-400 text-sm mt-2 inline-block">← Back to Browse</Link>
     </div>
   )
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-5">
-      <Link to="/browse" className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors">
+      <Link to="/browse" className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-main transition-colors">
         <ArrowLeft size={14} /> Back to Browse
       </Link>
 
@@ -110,9 +112,9 @@ export default function ResourceDetail() {
               <FileTypeBadge type={resource.fileType} />
               <CategoryBadge category={resource.category} />
             </div>
-            <h1 className="font-display font-bold text-xl text-white mb-1">{resource.title}</h1>
+            <h1 className="font-display font-bold text-xl text-text-main mb-1">{resource.title}</h1>
             {resource.description && (
-              <p className="text-white/50 text-sm">{resource.description}</p>
+              <p className="text-text-muted text-sm">{resource.description}</p>
             )}
           </div>
         </div>
@@ -125,9 +127,9 @@ export default function ResourceDetail() {
             { label: 'Semester', value: `Sem ${resource.semester}` },
             { label: 'Size',     value: formatSize(resource.fileSize) },
           ].map(({ label, value }) => (
-            <div key={label} className="p-3 rounded-xl bg-white/[0.03] border border-border">
-              <p className="text-xs text-white/30 mb-0.5">{label}</p>
-              <p className="text-sm font-medium text-white">{value}</p>
+            <div key={label} className="p-3 rounded-xl bg-panel/30 border border-border">
+              <p className="text-xs text-text-muted mb-0.5">{label}</p>
+              <p className="text-sm font-medium text-text-main">{value}</p>
             </div>
           ))}
         </div>
@@ -135,9 +137,9 @@ export default function ResourceDetail() {
         {/* Tags */}
         {resource.tags?.length > 0 && (
           <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <Tag size={12} className="text-white/30" />
+            <Tag size={12} className="text-text-muted" />
             {resource.tags.map(t => (
-              <span key={t} className="badge bg-white/5 text-white/40">{t}</span>
+              <span key={t} className="badge bg-panel border border-border text-text-muted">{t}</span>
             ))}
           </div>
         )}
@@ -145,18 +147,18 @@ export default function ResourceDetail() {
         {/* Uploader + stats */}
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <Link to={`/profile/${resource.uploadedBy?._id}`} className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-full bg-ink-700 flex items-center justify-center overflow-hidden ring-1 ring-white/10 group-hover:ring-ink-500 transition-all">
+            <div className="w-8 h-8 rounded-full bg-panel flex items-center justify-center overflow-hidden ring-1 ring-border group-hover:ring-ink-500 transition-all">
               {resource.uploadedBy?.avatar
                 ? <img src={resource.uploadedBy.avatar} className="w-full h-full object-cover" alt="" />
                 : <span className="text-xs font-bold text-ink-200">{resource.uploadedBy?.name?.[0]}</span>
               }
             </div>
             <div>
-              <p className="text-sm font-medium text-white group-hover:text-ink-400 transition-colors">{resource.uploadedBy?.name}</p>
-              <p className="text-xs text-white/40">{timeAgo(resource.createdAt)}</p>
+              <p className="text-sm font-medium text-text-main group-hover:text-ink-400 transition-colors">{resource.uploadedBy?.name}</p>
+              <p className="text-xs text-text-muted">{timeAgo(resource.createdAt)}</p>
             </div>
           </Link>
-          <div className="flex items-center gap-4 text-xs text-white/40">
+          <div className="flex items-center gap-4 text-xs text-text-muted">
             <span className="flex items-center gap-1"><Eye size={12} />{resource.views}</span>
             <span className="flex items-center gap-1"><Download size={12} />{resource.downloads}</span>
             {resource.avgRating > 0 && (
@@ -170,11 +172,11 @@ export default function ResourceDetail() {
 
         {/* Upload Stats Addon for Liking */}
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border">
-          <button onClick={() => handleInteract('like')} className={`btn ${resource.likes?.includes(user?._id) ? 'bg-ink-500/20 text-ink-300 border border-ink-500/30' : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
+          <button onClick={() => handleInteract('like')} className={`btn ${resource.likes?.includes(user?._id) ? 'bg-ink-500/20 text-ink-300 border border-ink-500/30' : 'bg-panel text-text-muted border border-border hover:bg-panel/80'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
             <ThumbsUp size={16} className={resource.likes?.includes(user?._id) ? "fill-ink-500" : ""} />
             <span className="font-semibold text-sm">{resource.likes?.length || 0}</span>
           </button>
-          <button onClick={() => handleInteract('dislike')} className={`btn ${resource.dislikes?.includes(user?._id) ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-white/5 text-white/50 border border-white/5 hover:bg-white/10'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
+          <button onClick={() => handleInteract('dislike')} className={`btn ${resource.dislikes?.includes(user?._id) ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-panel text-text-muted border border-border hover:bg-panel/80'} px-4 py-2 rounded-xl flex items-center gap-2 transition-all`}>
             <ThumbsDown size={16} className={resource.dislikes?.includes(user?._id) ? "fill-red-500" : ""} />
             <span className="font-semibold text-sm">{resource.dislikes?.length || 0}</span>
           </button>
@@ -194,20 +196,36 @@ export default function ResourceDetail() {
             </button>
           )}
 
+          <button onClick={() => setShowPreview(true)}
+            className="btn-ghost border border-border px-4 py-3 text-text-muted hover:text-text-main"
+            title="Preview Document">
+            <Eye size={16} /> Preview
+          </button>
+
           <a href={resource.fileUrl} target="_blank" rel="noreferrer"
-            className="btn-ghost border border-border px-4 py-3">
+            className="btn-ghost border border-border px-4 py-3" title="Open External">
             <ExternalLink size={15} />
           </a>
         </div>
       </motion.div>
 
+      {showPreview && (
+        <DocumentViewer
+          url={resource.fileUrl}
+          type={resource.fileType}
+          title={resource.title}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownload}
+        />
+      )}
+
       {/* Comments */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }} className="card p-6">
-        <h2 className="font-semibold text-white mb-4">Reviews ({comments.length})</h2>
+        <h2 className="font-semibold text-text-main mb-4">Reviews ({comments.length})</h2>
 
         {/* Add review */}
         <form onSubmit={handleSubmitComment} className="mb-6 pb-6 border-b border-border">
-          <p className="text-xs text-white/40 mb-2">Your rating</p>
+          <p className="text-xs text-text-muted mb-2">Your rating</p>
           <div className="flex gap-1 mb-3">
             {[1,2,3,4,5].map(i => (
               <button key={i} type="button" onClick={() => setNewRating(i)}>
@@ -233,7 +251,7 @@ export default function ResourceDetail() {
 
         {/* List */}
         {comments.length === 0
-          ? <p className="text-white/30 text-sm text-center py-4">No reviews yet. Be the first!</p>
+          ? <p className="text-text-muted/40 text-sm text-center py-4">No reviews yet. Be the first!</p>
           : <div className="space-y-4">
               {comments.map(c => (
                 <div key={c._id} className="flex gap-3">
@@ -245,11 +263,11 @@ export default function ResourceDetail() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-white">{c.user?.name}</span>
+                      <span className="text-sm font-medium text-text-main">{c.user?.name}</span>
                       <Stars rating={c.rating} size={11} />
-                      <span className="text-xs text-white/30">{timeAgo(c.createdAt)}</span>
+                      <span className="text-xs text-text-muted/40">{timeAgo(c.createdAt)}</span>
                     </div>
-                    {c.comment && <p className="text-sm text-white/60">{c.comment}</p>}
+                    {c.comment && <p className="text-sm text-text-muted">{c.comment}</p>}
                   </div>
                 </div>
               ))}

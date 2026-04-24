@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   viewedResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
   totalLikes: { type: Number, default: 0 },
   totalDislikes: { type: Number, default: 0 },
+  documentLikes: { type: Number, default: 0 },
+  documentDislikes: { type: Number, default: 0 },
   avgRating: { type: Number, default: 0 },
   ratingCount: { type: Number, default: 0 }
 }, { timestamps: true });

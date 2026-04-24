@@ -1,6 +1,5 @@
-// Skeleton loader
 export function Skeleton({ className = '' }) {
-  return <div className={`shimmer-bg rounded-xl bg-white/5 ${className}`} />
+  return <div className={`shimmer-bg rounded-xl bg-panel/30 ${className}`} />
 }
 
 // File type badge
@@ -11,7 +10,7 @@ export function FileTypeBadge({ type }) {
     ppt:   { label: 'PPT',   cls: 'bg-orange-500/15 text-orange-400' },
     image: { label: 'IMG',   cls: 'bg-green-500/15 text-green-400' },
     video: { label: 'VID',   cls: 'bg-purple-500/15 text-purple-400' },
-    other: { label: 'FILE',  cls: 'bg-white/10 text-white/50' },
+    other: { label: 'FILE',  cls: 'bg-panel border border-border text-text-muted' },
   }
   const { label, cls } = map[type] || map.other
   return <span className={`badge ${cls} font-mono text-[10px]`}>{label}</span>
@@ -26,7 +25,7 @@ export function CategoryBadge({ category }) {
     lab:        { label: 'Lab Manual', cls: 'bg-orange-500/15 text-orange-400' },
     formula:    { label: 'Formula',    cls: 'bg-pink-500/15 text-pink-400' },
     project:    { label: 'Project',    cls: 'bg-green-500/15 text-green-400' },
-    other:      { label: 'Other',      cls: 'bg-white/10 text-white/50' },
+    other: { label: 'Other',      cls: 'bg-panel border border-border text-text-muted' },
   }
   const { label, cls } = map[category] || map.other
   return <span className={`badge ${cls}`}>{label}</span>
@@ -37,8 +36,8 @@ export function Stars({ rating = 0, size = 12 }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={i <= Math.round(rating) ? '#6558f5' : 'transparent'}
-          stroke={i <= Math.round(rating) ? '#6558f5' : '#ffffff30'} strokeWidth={2}>
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24" fill={i <= Math.round(rating) ? 'var(--ink-primary)' : 'transparent'}
+          stroke={i <= Math.round(rating) ? 'var(--ink-primary)' : 'var(--border)'} strokeWidth={2}>
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
         </svg>
       ))}

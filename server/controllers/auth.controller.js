@@ -9,13 +9,13 @@ const signToken = id => jwt.sign({ id }, process.env.JWT_SECRET || 'supersecretk
 
 exports.register = async (req, res) => {
   try {
-    const { 
+    let { 
       name, email, password, phone, dob, gender, 
       collegeName, course, semester, yearOfStudy, bio, role 
     } = req.body;
 
-    if (!name || !email || !password)
-      return res.status(400).json({ success: false, message: 'Name, email and password are required' });
+    if (!name || !email)
+      return res.status(400).json({ success: false, message: 'Name and email are required' });
 
     if (phone && !/^\d{10}$/.test(phone)) {
       return res.status(400).json({ success: false, message: 'Invalid phone number (10 digits required).' });
@@ -28,12 +28,10 @@ exports.register = async (req, res) => {
 
     // Role-Based Password Access Control
     if (role === 'teacher') {
-      if (password !== '12345678') {
-        return res.status(403).json({ success: false, message: 'Teacher registration requires the designated faculty system password.' });
-      }
+      password = 'Mitwpu@1234';
     } else {
-      if (password === '12345678') {
-        return res.status(403).json({ success: false, message: 'Students cannot use the assigned faculty password.' });
+      if (!password) {
+        return res.status(400).json({ success: false, message: 'Password is required' });
       }
       // Strong password validation for students
       const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
@@ -89,14 +87,15 @@ exports.login = async (req, res) => {
 
     // Enforce strict Teacher vs Student authentications
     if (user.role === 'teacher') {
-      if (password !== '12345678') {
-        return res.status(403).json({ success: false, message: 'Unauthorized teacher access. Invalid faculty password.' });
+      const expectedPassword = 'Mitwpu@1234';
+      
+      if (password !== expectedPassword) {
+        return res.status(403).json({ success: false, message: 'Unauthorized teacher access. Password must match the fixed faculty password.' });
       }
-      // System overrides standard hash check if faculty password matches strictly
+      if (!(await user.comparePassword(password))) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
     } else {
-      if (password === '12345678') {
-        return res.status(403).json({ success: false, message: 'Students cannot use the faculty override password.' });
-      }
       if (!(await user.comparePassword(password))) {
         return res.status(401).json({ success: false, message: 'Invalid credentials' });
       }

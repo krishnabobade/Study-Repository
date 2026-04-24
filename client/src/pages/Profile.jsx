@@ -70,8 +70,8 @@ export default function Profile() {
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <div className="mb-2">
-        <h1 className="font-display font-bold text-2xl text-white mb-1">Profile</h1>
-        <p className="text-white/50 text-sm">Manage your account and preferences</p>
+        <h1 className="font-display font-bold text-2xl text-text-main mb-1">Profile</h1>
+        <p className="text-text-muted text-sm">Manage your account and preferences</p>
       </div>
 
       {/* Avatar + basic info */}
@@ -87,20 +87,20 @@ export default function Profile() {
             </div>
             <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-ink-500 flex items-center justify-center cursor-pointer
                               hover:bg-ink-400 transition-colors shadow-lg">
-              <Camera size={13} className="text-white" />
+              <Camera size={13} className="text-text-main" />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
             </label>
           </div>
 
           <div className="flex-1">
-            <p className="font-display font-bold text-xl text-white">{user?.name}</p>
-            <p className="text-white/50 text-sm">{user?.email}</p>
+            <p className="font-display font-bold text-xl text-text-main">{user?.name}</p>
+            <p className="text-text-muted text-sm">{user?.email}</p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="badge bg-ink-500/20 text-ink-300 capitalize">{user?.role}</span>
-              {user?.collegeName && <span className="badge bg-white/5 text-white/50">{user.collegeName}</span>}
-              {user?.course && <span className="badge bg-white/5 text-white/60">{user.course}</span>}
-              {user?.yearOfStudy && <span className="badge bg-white/5 text-white/60">Year {user.yearOfStudy}</span>}
-              {user?.semester && <span className="badge bg-white/5 text-white/60">Sem {user.semester}</span>}
+              {user?.collegeName && <span className="badge bg-panel border border-border text-text-muted">{user.collegeName}</span>}
+              {user?.course && <span className="badge bg-panel border border-border text-text-muted">{user.course}</span>}
+              {user?.yearOfStudy && <span className="badge bg-panel border border-border text-text-muted">Year {user.yearOfStudy}</span>}
+              {user?.semester && <span className="badge bg-panel border border-border text-text-muted">Sem {user.semester}</span>}
             </div>
           </div>
         </div>
@@ -115,9 +115,9 @@ export default function Profile() {
             ['Avg Rating', user?.avgRating ?? 0],
             ['Ratings', user?.ratingCount ?? 0]
           ].map(([label, val]) => (
-            <div key={label} className="text-center p-3 rounded-xl bg-white/[0.03]">
+            <div key={label} className="text-center p-3 rounded-xl bg-panel/30 border border-border">
               <p className="text-2xl font-display font-bold text-ink-300">{val}</p>
-              <p className="text-xs text-white/40 mt-0.5">{label}</p>
+              <p className="text-xs text-text-muted mt-0.5">{label}</p>
             </div>
           ))}
         </div>
@@ -125,13 +125,13 @@ export default function Profile() {
 
       {/* Edit profile form */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.08 }} className="card p-6">
-        <h2 className="font-semibold text-white mb-4">Edit Profile</h2>
+        <h2 className="font-semibold text-text-main mb-4">Edit Profile</h2>
         <form onSubmit={handleSave} className="space-y-4">
           <input className="input" placeholder="Full name" value={form.name} onChange={set('name')} required />
           
           <div className="grid grid-cols-2 gap-3">
             <input type="tel" className="input" placeholder="Phone Number" value={form.phone} onChange={set('phone')} maxLength={10} />
-            <input type="date" className="input text-white/70" value={form.dob} onChange={set('dob')} />
+            <input type="date" className="input text-text-muted" value={form.dob} onChange={set('dob')} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -174,7 +174,7 @@ export default function Profile() {
 
       {/* Change password */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.12 }} className="card p-6">
-        <h2 className="font-semibold text-white mb-4 flex items-center gap-2"><Lock size={16} className="text-ink-400" />Change Password</h2>
+        <h2 className="font-semibold text-text-main mb-4 flex items-center gap-2"><Lock size={16} className="text-ink-400" />Change Password</h2>
         <form onSubmit={handlePasswordChange} className="space-y-3">
           <input type="password" className="input" placeholder="Current password"
             value={passwordForm.currentPassword} onChange={setPw('currentPassword')} required />

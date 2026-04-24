@@ -14,8 +14,7 @@ const resourceRoutes = require('./routes/resource.routes');
 
 const app = express();
 
-// Middleware
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+// Helmet removed entirely for testing
 app.use(mongoSanitize());
 app.use(compression());
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));

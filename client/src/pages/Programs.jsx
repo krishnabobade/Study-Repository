@@ -42,7 +42,7 @@ export default function Programs() {
           initial={{ opacity: 0, scale: 0.8, rotate: -15 }} 
           animate={{ opacity: 1, scale: 1, rotate: 0 }} 
           transition={{ duration: 0.8, type: 'spring', bounce: 0.5 }}
-          className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-ink-500/30 to-ink-500/5 flex items-center justify-center mx-auto mb-8 ring-1 ring-white/10 shadow-2xl shadow-ink-500/20"
+          className="w-24 h-24 rounded-[32px] bg-panel border border-border flex items-center justify-center mx-auto mb-8 ring-1 ring-border shadow-2xl shadow-ink-500/20"
         >
           <GraduationCap size={44} className="text-ink-400" />
         </motion.div>
@@ -51,7 +51,7 @@ export default function Programs() {
           initial={{ opacity: 0, y: 15 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="font-display font-black text-4xl md:text-5xl text-white mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70"
+          className="font-display font-black text-4xl md:text-5xl text-text-main mb-6 tracking-tight bg-clip-text"
         >
           Academic Edge at MIT-WPU
         </motion.h1>
@@ -60,7 +60,7 @@ export default function Programs() {
           initial={{ opacity: 0, y: 15 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-white/60 text-lg md:text-xl font-medium leading-relaxed"
+          className="text-text-muted text-lg md:text-xl font-medium leading-relaxed"
         >
           Explore over 150+ undergraduate, postgraduate, and doctoral programs across multiple disciplines explicitly designed to engineer the future.
         </motion.p>
@@ -82,20 +82,20 @@ export default function Programs() {
               variants={itemVariants}
               whileHover={{ y: -6, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="card relative overflow-hidden group cursor-pointer border border-white/5 hover:border-white/10 transition-colors p-6"
+              className="card relative overflow-hidden group cursor-pointer border border-white/5 hover:border-border transition-colors p-6"
             >
               <div className="absolute -right-8 -top-8 w-32 h-32 blur-3xl rounded-full bg-ink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <motion.div 
-                className="w-14 h-14 rounded-2xl bg-white/[0.04] flex items-center justify-center mb-5 border border-white/5 shadow-inner"
+                className="w-14 h-14 rounded-2xl bg-panel flex items-center justify-center mb-5 border border-border shadow-inner"
                 whileHover={{ rotate: 5, scale: 1.1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 10 }}
               >
                 <Icon size={26} className="text-ink-400 group-hover:text-ink-300 transition-colors" />
               </motion.div>
               
-              <h3 className="text-white font-bold text-lg mb-2 relative z-10">{h.title}</h3>
-              <p className="text-white/50 text-sm leading-relaxed relative z-10">{h.description}</p>
+              <h3 className="text-text-main font-bold text-lg mb-2 relative z-10">{h.title}</h3>
+              <p className="text-text-muted text-sm leading-relaxed relative z-10">{h.description}</p>
             </motion.div>
           )
         })}
@@ -116,7 +116,7 @@ export default function Programs() {
           >
             <BookOpen size={20} className="text-ink-400" />
           </motion.div>
-          <h2 className="font-display font-bold text-3xl text-white tracking-tight">
+          <h2 className="font-display font-bold text-3xl text-text-main tracking-tight">
             Schools & Departments
           </h2>
         </div>
@@ -132,9 +132,9 @@ export default function Programs() {
               className="card overflow-hidden flex flex-col border border-white/5 hover:border-white/15 transition-colors shadow-xl shadow-black/20"
             >
               {/* School Header */}
-              <div className="p-6 bg-gradient-to-br from-white/[0.04] to-transparent border-b border-white/5 relative overflow-hidden">
+              <div className="p-6 bg-gradient-to-br from-panel/50 to-transparent border-b border-border relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-full h-full bg-grid-white/[0.02] bg-[length:16px_16px]" />
-                <h3 className="font-display font-bold text-white text-lg relative z-10 leading-tight pr-10">{school.name}</h3>
+                <h3 className="font-display font-bold text-text-main text-lg relative z-10 leading-tight pr-10">{school.name}</h3>
                 <div className="mt-3 flex items-center gap-2 relative z-10">
                   <span className="flex h-2 w-2 rounded-full bg-ink-500" />
                   <p className="text-ink-300 font-semibold text-xs uppercase tracking-wider">{school.courses.length} Programs</p>
@@ -154,18 +154,17 @@ export default function Programs() {
                     <motion.div 
                       key={course.name} 
                       variants={listItemVariants}
-                      whileHover={{ scale: 1.02, x: 4, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-                      className="flex flex-col px-4 py-3 rounded-xl transition-all cursor-default group border border-transparent hover:border-white/5"
+                      className="flex flex-col px-4 py-3 rounded-xl transition-all cursor-default group border border-transparent hover:border-border hover:bg-panel/50"
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <span className="text-white/80 font-medium text-[15px] group-hover:text-white transition-colors">{course.name}</span>
-                        <ChevronRight size={16} className="text-white/0 group-hover:text-ink-400 shrink-0 transition-all -translate-x-2 group-hover:translate-x-0" />
+                        <span className="text-text-main/80 font-medium text-[15px] group-hover:text-text-main transition-colors">{course.name}</span>
+                        <ChevronRight size={16} className="text-text-main/0 group-hover:text-ink-400 shrink-0 transition-all -translate-x-2 group-hover:translate-x-0" />
                       </div>
                       <div className="flex gap-2 mt-2 items-center">
                         <span className="text-[10px] uppercase font-bold text-ink-200 bg-ink-500/20 px-2 py-0.5 rounded shadow-sm border border-ink-500/10">
                           {course.type}
                         </span>
-                        <span className="text-[11px] font-medium text-white/40">{course.duration}</span>
+                        <span className="text-[11px] font-medium text-text-muted">{course.duration}</span>
                       </div>
                     </motion.div>
                   ))}

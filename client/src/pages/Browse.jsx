@@ -65,21 +65,21 @@ export default function Browse() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="font-display font-bold text-2xl text-white mb-1">Browse Resources</h1>
-        <p className="text-white/50 text-sm">Discover study materials shared by your peers</p>
+        <h1 className="font-display font-bold text-2xl text-text-main mb-1">Browse Resources</h1>
+        <p className="text-text-muted text-sm">Discover study materials shared by your peers</p>
       </div>
 
       {/* Search + filter bar */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search notes, subjects, files…"
             className="input pl-11 w-full" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-muted">
               <X size={14} />
             </button>
           )}
@@ -104,48 +104,48 @@ export default function Browse() {
           className="card p-4 mb-4 overflow-hidden">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-white/40 mb-2 font-medium">Category</p>
+              <p className="text-xs text-text-muted mb-2 font-medium">Category</p>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map(c => (
                   <button key={c} onClick={() => setFilter('category', c)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all capitalize
-                                ${filters.category === c ? 'bg-ink-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                ${filters.category === c ? 'bg-ink-500 text-text-main' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
                     {c === 'qpaper' ? 'Q. Paper' : c}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-2 font-medium">Course</p>
+              <p className="text-xs text-text-muted mb-2 font-medium">Course</p>
               <div className="flex flex-wrap gap-1.5">
                 {COURSES.map(c => (
                   <button key={c} onClick={() => setFilter('course', c)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all
-                                ${filters.course === c ? 'bg-ink-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                ${filters.course === c ? 'bg-ink-500 text-text-main' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
                     {c}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-2 font-medium">Semester</p>
+              <p className="text-xs text-text-muted mb-2 font-medium">Semester</p>
               <div className="flex flex-wrap gap-1.5">
                 {SEMESTERS.map(s => (
                   <button key={s} onClick={() => setFilter('semester', s)}
                     className={`w-9 h-9 rounded-lg text-xs font-medium transition-all
-                                ${filters.semester == s ? 'bg-ink-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                ${filters.semester == s ? 'bg-ink-500 text-text-main' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
                     {s}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-xs text-white/40 mb-2 font-medium">File Type</p>
+              <p className="text-xs text-text-muted mb-2 font-medium">File Type</p>
               <div className="flex flex-wrap gap-1.5">
                 {FILE_TYPES.map(t => (
                   <button key={t} onClick={() => setFilter('fileType', t)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all uppercase
-                                ${filters.fileType === t ? 'bg-ink-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                ${filters.fileType === t ? 'bg-ink-500 text-text-main' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
                     {t}
                   </button>
                 ))}
@@ -163,11 +163,11 @@ export default function Browse() {
         : resources.length === 0
           ? <div className="text-center py-20">
               <p className="text-5xl mb-4">🔍</p>
-              <p className="text-white/60 font-medium">No resources found</p>
-              <p className="text-white/30 text-sm mt-1">Try adjusting your search or filters</p>
+              <p className="text-text-main/60 font-medium">No resources found</p>
+              <p className="text-text-muted text-sm mt-1">Try adjusting your search or filters</p>
             </div>
           : <>
-              <p className="text-xs text-white/40 mb-4">{pagination.total} resource{pagination.total !== 1 ? 's' : ''} found</p>
+              <p className="text-xs text-text-muted mb-4">{pagination.total} resource{pagination.total !== 1 ? 's' : ''} found</p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {resources.map((r, i) => (
                   <motion.div key={r._id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ export default function Browse() {
                   {[...Array(pagination.pages)].map((_, i) => (
                     <button key={i} onClick={() => setPage(i + 1)}
                       className={`w-9 h-9 rounded-xl text-sm font-medium transition-all
-                                  ${page === i + 1 ? 'bg-ink-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                  ${page === i + 1 ? 'bg-ink-500 text-text-main' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
                       {i + 1}
                     </button>
                   ))}

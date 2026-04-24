@@ -218,6 +218,10 @@ exports.interactResource = async (req, res) => {
     const resource = await Resource.findById(req.params.id);
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
     
+    // Track initial state
+    const wasLiked = resource.likes.some(id => id.toString() === req.user.id);
+    const wasDisliked = resource.dislikes.some(id => id.toString() === req.user.id);
+
     // Remove user from both arrays to prevent duplicates
     resource.likes = resource.likes.filter(id => id.toString() !== req.user.id);
     resource.dislikes = resource.dislikes.filter(id => id.toString() !== req.user.id);
@@ -230,6 +234,19 @@ exports.interactResource = async (req, res) => {
     }
 
     await resource.save();
+
+    // Propagate diff to the document uploader's User profile
+    let likeDiff = 0, dislikeDiff = 0;
+    if (wasLiked && action !== 'like') likeDiff -= 1;
+    if (!wasLiked && action === 'like') likeDiff += 1;
+    if (wasDisliked && action !== 'dislike') dislikeDiff -= 1;
+    if (!wasDisliked && action === 'dislike') dislikeDiff += 1;
+
+    if (likeDiff !== 0 || dislikeDiff !== 0) {
+      await User.findByIdAndUpdate(resource.uploadedBy, {
+        $inc: { documentLikes: likeDiff, documentDislikes: dislikeDiff }
+      });
+    }
 
     res.json({ 
       success: true, 
