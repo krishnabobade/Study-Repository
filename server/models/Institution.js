@@ -15,6 +15,7 @@ const institutionSchema = new mongoose.Schema({
   adminContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
-institutionSchema.index({ domain: 1 });
+// Indexing for performance
+// (The unique index for 'domain' is automatically handled by the field property)
 
 module.exports = mongoose.model('Institution', institutionSchema);

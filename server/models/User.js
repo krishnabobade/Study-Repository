@@ -48,7 +48,6 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Advanced Indexing for Scale
-userSchema.index({ email: 1 });
 userSchema.index({ institutionId: 1, role: 1 });
 userSchema.index({ 'subscription.plan': 1 });
 

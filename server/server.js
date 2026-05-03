@@ -38,12 +38,24 @@ app.use(compression());
 // Configure CORS for production
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL
+  process.env.FRONTEND_URL,
+  'https://*.vercel.app' // Allow all Vercel preview deployments
 ].filter(Boolean);
 
 app.use(cors({ 
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed.includes('*')) {
+        const regex = new RegExp('^' + allowed.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+        return regex.test(origin);
+      }
+      return allowed === origin;
+    });
+
+    if (isAllowed || origin.includes('localhost') || origin.includes('127.0.0.1')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -114,24 +126,25 @@ app.get('*', (req, res) => {
 // Initialize Server and Database
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  // Connect to Database
-  await connectDB();
+// Initialize Database Connection immediately
+connectDB();
 
-  const server = app.listen(PORT, () => {
+if (require.main === module) {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+    logger.info(`📡 Binding to 0.0.0.0 for cloud accessibility`);
   });
 
   // Initialize WebSockets
   const socketFile = require('./socket');
   socketFile.init(server);
 
-  // Initialize Automated Background Jobs (Queue & CRON)
+  // Initialize Automated Background Jobs
   const cronService = require('./services/cron.service');
   cronService.initCronJobs();
-};
+}
 
-startServer();
+module.exports = app;
 
 // Global Error Handler & Production Logging
 app.use((err, req, res, next) => {

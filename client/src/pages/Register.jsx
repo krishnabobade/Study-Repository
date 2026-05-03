@@ -75,6 +75,7 @@ const RegisterForm = () => {
       Object.entries(form).forEach(([k,v]) => {
         if (v !== null && v !== '') fd.append(k, v);
       });
+      fd.append('consentAccepted', consentAccepted);
       if (avatarFile) fd.append('avatar', avatarFile);
 
       await register(fd)

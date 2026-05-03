@@ -10,10 +10,13 @@ const signToken = id => jwt.sign({ id }, process.env.JWT_SECRET || 'supersecretk
 
 exports.register = async (req, res) => {
   try {
+    // Multer populates req.body for multipart/form-data
     let { 
       name, email, password, phone, dob, gender, 
-      collegeName, course, semester, yearOfStudy, bio, role 
+      collegeName, course, semester, yearOfStudy, bio, role, consentAccepted 
     } = req.body;
+
+    console.log(`[AUTH] Registration attempt for: ${email}`);
 
     if (!name || !email)
       return res.status(400).json({ success: false, message: 'Name and email are required' });
@@ -93,7 +96,23 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ success: true, token, user });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error(' [REGISTRATION FATAL ERROR] ', {
+      message: err.message,
+      stack: err.stack,
+      body: req.body
+    });
+    
+    let errorMessage = err.message;
+    if (err.name === 'ValidationError') {
+      errorMessage = Object.values(err.errors).map(e => e.message).join(', ');
+    } else if (err.code === 11000) {
+      errorMessage = 'This email is already registered. Please try logging in.';
+    }
+
+    res.status(500).json({ 
+      success: false, 
+      message: errorMessage || 'Server-side registration error'
+    });
   }
 };
 

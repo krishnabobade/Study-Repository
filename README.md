@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎓 MIT-WPU Study Repository
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -108,3 +109,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 📞 Support
 For emergency institutional support or bug reports, please contact [krishna.bobade@mitwpu.edu.in](mailto:krishna.bobade@mitwpu.edu.in).
+=======
+# StudyRepository
+>>>>>>> cee81a112f4ffac9379423d83e890fe14a347cf8
