@@ -38,26 +38,21 @@ app.use(compression());
 // Configure CORS for production
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL,
-  'https://*.vercel.app' // Allow all Vercel preview deployments
+  process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({ 
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps or curl) or if in development
+    if (!origin || process.env.NODE_ENV !== 'production') return callback(null, true);
     
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed.includes('*')) {
-        const regex = new RegExp('^' + allowed.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
-        return regex.test(origin);
-      }
-      return allowed === origin;
-    });
+    const isVercel = origin.endsWith('.vercel.app');
+    const isExplicitlyAllowed = allowedOrigins.includes(origin);
 
-    if (isAllowed || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    if (isVercel || isExplicitlyAllowed || origin.includes('localhost')) {
       callback(null, true);
     } else {
+      console.warn(`[CORS Blocked] Origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   }, 
