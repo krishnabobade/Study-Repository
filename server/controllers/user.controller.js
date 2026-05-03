@@ -155,7 +155,46 @@ exports.interactWithUser = async (req, res) => {
     targetUser.avgRating = avgRating;
     await targetUser.save();
 
+    // Send Notification
+    const notificationController = require('./notification.controller');
+    if (action === 'like') {
+      await notificationController.createNotification(targetUserId, `Someone liked your profile!`, 'info');
+    } else if (action === 'dislike') {
+      await notificationController.createNotification(targetUserId, `Someone disliked your profile.`, 'alert');
+    }
+    if (rating !== undefined && rating > 0) {
+      await notificationController.createNotification(targetUserId, `Someone rated your profile ${rating} stars!`, 'info');
+    }
+
     res.json({ success: true, myInteraction: interaction, stats: { totalLikes, totalDislikes, avgRating, ratingCount } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const isAdmin = ['super_admin', 'college_admin', 'department_admin', 'admin'].includes(req.user.role);
+    if (!isAdmin) return res.status(403).json({ success: false, message: 'Unauthorized. Admin access required.' });
+
+    const targetUserId = req.params.id;
+    if (targetUserId === req.user.id) return res.status(400).json({ success: false, message: 'Cannot delete your own account.' });
+
+    const user = await User.findById(targetUserId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    await User.findByIdAndDelete(targetUserId);
+
+    const AuditLog = require('../models/AuditLog');
+    await AuditLog.create({
+      action: 'DELETE_USER',
+      performedBy: req.user.id,
+      targetId: targetUserId,
+      targetName: user.email,
+      details: `${req.user.role} permanently deleted user account ${user.email}.`
+    });
+
+    res.json({ success: true, message: 'User permanently deleted.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

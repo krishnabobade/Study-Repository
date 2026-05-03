@@ -33,7 +33,7 @@ const validateAcademicContent = async (req, res, next) => {
       return next();
     }
 
-    console.log(`Analyzing file content with AI for ${req.file.originalname}...`);
+    // Analyzing file content with AI
 
     let inlineData = {
       mimeType: req.file.mimetype,

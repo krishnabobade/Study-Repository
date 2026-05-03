@@ -2,12 +2,14 @@ const Resource = require('../models/Resource');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 const { uploadStream } = require('../utils/cloudinary');
+const { uploadToS3, getPresignedDownloadUrl, deleteFromS3 } = require('../utils/s3');
 const path = require('path');
+const logger = require('../config/logger');
 
 exports.getAllResources = async (req, res) => {
   try {
     const { search, course, semester, category, fileType, dateRange, sort, limit = 12, page = 1 } = req.query;
-    
+
     // 1. Text Search (Primary Engine)
     let query = {};
     let sortCondition = { createdAt: -1 }; // Default new
@@ -70,23 +72,93 @@ exports.getAllResources = async (req, res) => {
 
     const total = await Resource.countDocuments(query);
 
-    res.json({ 
+    // Transform URLs for Frontend Preview (Generate Pre-signed URLs if stored in S3)
+    const processedResources = await Promise.all(resources.map(async (doc) => {
+      let obj = doc.toObject ? doc.toObject() : doc;
+      if (obj.fileUrl && obj.fileUrl.startsWith('s3://')) {
+        obj.fileUrl = await getPresignedDownloadUrl(obj.filePublicId);
+      }
+      return obj;
+    }));
+
+    const responseData = { 
       success: true, 
-      resources,
+      resources: processedResources,
       pagination: { total, page: Number(page), pages: Math.ceil(total / Number(limit)) }
-    });
+    };
+
+    res.json(responseData);
   } catch (err) {
+    logger.error('❌ Error fetching resources:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 exports.getTrendingResources = async (req, res) => {
   try {
-    const resources = await Resource.find()
+    const resources = await Resource.find({ isArchived: false })
       .sort({ downloads: -1, views: -1, createdAt: -1 })
       .limit(4)
       .populate('uploadedBy', 'name');
     res.json({ success: true, resources });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getRecommendations = async (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    
+    const user = await User.findById(req.user.id).populate('viewedResources');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // Build user profile preference vectors based on history
+    let preferredCourses = { [user.course]: 3 }; // Weight user's current course highest
+    let preferredSubjects = {};
+    
+    user.viewedResources.forEach(r => {
+      preferredCourses[r.course] = (preferredCourses[r.course] || 0) + 1;
+      preferredSubjects[r.subject] = (preferredSubjects[r.subject] || 0) + 1;
+    });
+
+    const topCourses = Object.keys(preferredCourses).sort((a,b) => preferredCourses[b] - preferredCourses[a]).slice(0, 2);
+    const topSubjects = Object.keys(preferredSubjects).sort((a,b) => preferredSubjects[b] - preferredSubjects[a]).slice(0, 3);
+
+    // AI Query Aggregation Pipeline
+    const recommendations = await Resource.aggregate([
+      { 
+        $match: { 
+          isArchived: false,
+          _id: { $nin: user.viewedResources.map(r => r._id) }, // Don't recommend already viewed
+          $or: [
+            { course: { $in: topCourses } },
+            { subject: { $in: topSubjects } },
+            { semester: user.semester }
+          ]
+        }
+      },
+      // Scoring Phase
+      {
+        $addFields: {
+          score: {
+            $add: [
+              { $cond: [{ $in: ['$course', topCourses] }, 5, 0] },
+              { $cond: [{ $in: ['$subject', topSubjects] }, 8, 0] },
+              { $cond: [{ $eq: ['$semester', user.semester] }, 3, 0] },
+              { $multiply: ['$downloads', 0.1] }, // Boost by popularity
+              { $multiply: ['$avgRating', 2] } // Boost by quality
+            ]
+          }
+        }
+      },
+      { $sort: { score: -1 } },
+      { $limit: 6 }
+    ]);
+
+    await Resource.populate(recommendations, { path: 'uploadedBy', select: 'name role' });
+
+    res.json({ success: true, resources: recommendations });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -120,21 +192,29 @@ exports.createResource = async (req, res) => {
 
     let fileUrl = '';
     let filePublicId = '';
+    let storageProvider = 'cloudinary';
 
-    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+    // Check if we should use Enterprise S3 Storage or fallback to Cloudinary
+    if (process.env.USE_AWS_S3 === 'true') {
+      try {
+        const s3Key = `documents/${Date.now()}-${req.file.originalname}`;
+        filePublicId = await uploadToS3(req.file.buffer, s3Key, req.file.mimetype);
+        fileUrl = `s3://${process.env.S3_BUCKET_NAME}/${filePublicId}`; // Internal reference
+        storageProvider = 's3';
+      } catch (s3Err) {
+        logger.error('S3 Upload failed, falling back to Cloudinary', s3Err);
+        // Fallback handled below implicitly if needed, or we just throw
+        return res.status(500).json({ success: false, message: 'Primary storage failure.' });
+      }
+    } else {
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+        return res.status(500).json({ success: false, message: 'Storage configuration is missing.' });
+      }
+
       let resource_type = ['doc', 'docx', 'ppt', 'pptx', 'pdf', 'other'].includes(fileType) ? 'raw' : 'auto';
       const cloudinaryResult = await uploadStream(req.file.buffer, { folder: 'studyrepo', resource_type });
       fileUrl = cloudinaryResult.secure_url;
       filePublicId = cloudinaryResult.public_id;
-    } else {
-      const fs = require('fs');
-      const uploadDir = path.join(__dirname, '../uploads');
-      if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-      const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
-      fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
-      const baseUrl = req.protocol + '://' + req.get('host');
-      fileUrl = `${baseUrl}/uploads/${filename}`;
-      filePublicId = filename;
     }
 
     // AI Intelligence tags (Simulated NLP keyword extraction from title & subject)
@@ -146,23 +226,18 @@ exports.createResource = async (req, res) => {
 
     const documentId = `DOC-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
 
+    const isTrustedRole = ['teacher', 'hod', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    
     const resource = await Resource.create({
       title, description, subject, course, semester: Number(semester), category,
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       fileUrl, filePublicId, fileType, fileSize: req.file.size, uploadedBy,
       fileHash, documentId,
       autoTags: [...new Set(autoTags)], aiSummary,
-      isApproved: true
+      isApproved: isTrustedRole
     });
 
     await User.findByIdAndUpdate(uploadedBy, { $inc: { totalUploads: 1 } });
-
-    const notificationController = require('./notification.controller');
-    await notificationController.createNotification(
-      uploadedBy,
-      `High-five! Your resource "${title}" is now live and secured with Auth ID: ${documentId}`,
-      'info'
-    );
 
     res.status(201).json({ success: true, message: 'Resource created safely', resource });
   } catch (err) {
@@ -175,19 +250,13 @@ exports.getResource = async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id).populate('uploadedBy', 'name email');
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
-    
-    // Increment view count
-    resource.views += 1;
-    await resource.save();
 
-    // Track user viewing
-    if (req.user) {
-      await User.findByIdAndUpdate(req.user.id, {
-        $addToSet: { viewedResources: resource._id }
-      });
+    let resourceObj = resource.toObject();
+    if (resourceObj.fileUrl && resourceObj.fileUrl.startsWith('s3://')) {
+      resourceObj.fileUrl = await getPresignedDownloadUrl(resourceObj.filePublicId);
     }
 
-    res.json({ success: true, resource });
+    res.json({ success: true, resource: resourceObj });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -198,15 +267,44 @@ exports.downloadResource = async (req, res) => {
     const resource = await Resource.findById(req.params.id);
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
 
-    // Increment download count
+    // Increment download count on the resource
     resource.downloads += 1;
     await resource.save();
 
-    if (req.user) {
-      await User.findByIdAndUpdate(req.user.id, { $inc: { totalDownloads: 1 } });
+    // Credit the uploader for the download
+    if (resource.uploadedBy) {
+      await User.findByIdAndUpdate(resource.uploadedBy, { $inc: { totalDownloads: 1 } });
     }
 
-    res.json({ success: true, fileUrl: resource.fileUrl });
+    let downloadUrl = resource.fileUrl;
+
+    // Generate secure pre-signed URL for S3 objects
+    if (resource.fileUrl.startsWith('s3://')) {
+      downloadUrl = await getPresignedDownloadUrl(resource.filePublicId);
+    }
+
+    res.json({ success: true, fileUrl: downloadUrl });
+  } catch (err) {
+    logger.error('Download Error: %o', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.recordView = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
+
+    resource.views += 1;
+    await resource.save();
+
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user.id, {
+        $addToSet: { viewedResources: resource._id }
+      });
+    }
+
+    res.json({ success: true, views: resource.views });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -246,6 +344,24 @@ exports.interactResource = async (req, res) => {
       await User.findByIdAndUpdate(resource.uploadedBy, {
         $inc: { documentLikes: likeDiff, documentDislikes: dislikeDiff }
       });
+      
+      // Notify uploader if it's a new like/dislike
+      if (resource.uploadedBy.toString() !== req.user.id) {
+        const notificationController = require('./notification.controller');
+        if (likeDiff > 0) {
+          await notificationController.createNotification(
+            resource.uploadedBy,
+            `Someone liked your upload: "${resource.title}"`,
+            'info'
+          );
+        } else if (dislikeDiff > 0) {
+          await notificationController.createNotification(
+            resource.uploadedBy,
+            `Someone disliked your upload: "${resource.title}"`,
+            'alert'
+          );
+        }
+      }
     }
 
     res.json({ 
@@ -265,8 +381,8 @@ exports.deleteResource = async (req, res) => {
 
     // Validate global role permissions
     const isOwner = resource.uploadedBy.toString() === req.user.id;
-    const isTeacher = req.user.role === 'teacher';
-    const isAdmin = req.user.role === 'admin';
+    const isTeacher = req.user.role === 'teacher' || req.user.role === 'hod';
+    const isAdmin = ['admin', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
 
     if (!isOwner && !isTeacher && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this resource. Insufficient permissions.' });
@@ -274,16 +390,11 @@ exports.deleteResource = async (req, res) => {
 
     // Physical File Cleanup
     if (resource.filePublicId) {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-         const { cloudinary } = require('../utils/cloudinary');
-         // We might need to specify resource_type if it is raw, but destroy often figures it out or doesn't care. Safe to just attempt a basic destroy.
-         await cloudinary.uploader.destroy(resource.filePublicId, { resource_type: resource.fileType === 'pdf' || resource.fileType === 'doc' || resource.fileType === 'ppt' || resource.fileType === 'other' ? 'raw' : 'image' });
-      } else {
-         const fs = require('fs');
-         const path = require('path');
-         const filePath = path.join(__dirname, '../uploads', resource.filePublicId);
-         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (!process.env.CLOUDINARY_CLOUD_NAME) {
+        return res.status(500).json({ success: false, message: 'Cloudinary configuration is missing.' });
       }
+      const { cloudinary } = require('../utils/cloudinary');
+      await cloudinary.uploader.destroy(resource.filePublicId, { resource_type: resource.fileType === 'pdf' || resource.fileType === 'doc' || resource.fileType === 'ppt' || resource.fileType === 'other' ? 'raw' : 'image' });
     }
 
     // Generate Moderation Audit Trail
@@ -396,10 +507,15 @@ exports.updateResourceVersion = async (req, res) => {
     const resource = await Resource.findById(id);
     
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
-    if (resource.uploadedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const isAdmin = ['admin', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    if (resource.uploadedBy.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized manually version this document.' });
     }
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded for new version' });
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      return res.status(500).json({ success: false, message: 'Cloudinary configuration is missing.' });
+    }
 
     const crypto = require('crypto');
     const newHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
@@ -408,7 +524,7 @@ exports.updateResourceVersion = async (req, res) => {
       return res.status(400).json({ success: false, message: 'This exact file is already the latest version.' });
     }
 
-    // Archive current file
+    // Archive current file metadata, we keep the old file active on Cloudinary because version history might need it
     resource.previousVersions.push({
       version: resource.version,
       fileUrl: resource.fileUrl,
@@ -417,17 +533,13 @@ exports.updateResourceVersion = async (req, res) => {
       uploadedAt: resource.updatedAt
     });
 
-    // Handle Upload for new file
-    const ext = require('path').extname(req.file.originalname).replace('.', '').toLowerCase();
-    const fs = require('fs');
-    const uploadDir = require('path').join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    const filename = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`;
-    fs.writeFileSync(require('path').join(uploadDir, filename), req.file.buffer);
-    const baseUrl = req.protocol + '://' + req.get('host');
-    
-    resource.fileUrl = `${baseUrl}/uploads/${filename}`;
-    resource.filePublicId = filename;
+    // Handle Upload for new file to Cloudinary
+    let fileType = resource.fileType;
+    let resource_type = ['doc', 'docx', 'ppt', 'pptx', 'pdf', 'other'].includes(fileType) ? 'raw' : 'auto';
+    const cloudinaryResult = await uploadStream(req.file.buffer, { folder: 'studyrepo', resource_type });
+
+    resource.fileUrl = cloudinaryResult.secure_url;
+    resource.filePublicId = cloudinaryResult.public_id;
     resource.fileHash = newHash;
     resource.version += 1;
 

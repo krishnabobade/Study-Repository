@@ -1,166 +1,110 @@
-# 📚 Study Repository — Full Stack MERN App
+# 🎓 MIT-WPU Study Repository
 
-A production-ready platform for students to upload, share, and discover academic resources.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)](https://www.mongodb.com/atlas)
 
----
-
-## 🗂 Project Structure
-
-```
-studyrepo/
-├── server/          ← Express.js + MongoDB backend
-│   ├── config/      ← DB + Cloudinary setup
-│   ├── controllers/ ← Route handlers
-│   ├── middleware/  ← Auth + upload middleware
-│   ├── models/      ← Mongoose schemas
-│   ├── routes/      ← API route definitions
-│   └── server.js    ← Entry point
-└── client/          ← React + Vite frontend
-    └── src/
-        ├── components/
-        ├── pages/
-        ├── services/  ← Axios API client
-        └── store/     ← Zustand state management
-```
+A premium, secure, and production-grade Academic Resource Management platform designed specifically for **MIT World Peace University**. This platform enables students and faculty to share, discover, and manage high-quality study materials with advanced security and institutional integration.
 
 ---
 
-## ⚡ Quick Start (Local Development)
+## ✨ Key Features
+
+### 🔐 Advanced Security & Auth
+*   **Institutional Verification**: Restricted to `@mitwpu.edu.in` email domains.
+*   **RBAC (Role-Based Access Control)**: Specialized permissions for Students, Faculty (Teachers/HODs), and Administrators.
+*   **Secure Recovery**: SHA-256 hashed token-based password reset system.
+*   **Consent Management**: Mandatory Terms & Conditions and Cookie consent for every session.
+
+### 📄 Document Management
+*   **Smart Uploads**: Restricted to Faculty members to ensure academic quality.
+*   **Document Intelligence**: AI-assisted academic content validation (prevents non-academic uploads).
+*   **Premium Viewer**: In-browser preview for PDFs, Images, and Office documents.
+*   **Version Control**: Support for multiple versions of the same resource.
+
+### 🎨 Premium UI/UX
+*   **Modern Aesthetics**: Glassmorphism design with vibrant gradients and fluid animations (Framer Motion).
+*   **Dual Theme**: Full support for Sleek Dark Mode and Clean Light Mode.
+*   **Zero Layout Shift**: Global skeleton loading system for a smooth experience.
+*   **Mobile First**: Fully responsive design for all screen sizes.
+
+### 🛠️ Administrative Suite
+*   **User Management**: Role assignment, account moderation, and audit logs.
+*   **Content Moderation**: Review, approve, or reject submissions.
+*   **Analytics**: Real-time tracking of platform growth, downloads, and engagement.
+
+---
+
+## 🚀 Tech Stack
+
+- **Frontend**: React 18, Vite, Tailwind CSS, Framer Motion, Lucide Icons, Zustand (State Management).
+- **Backend**: Node.js, Express.js.
+- **Database**: MongoDB with Mongoose ODM.
+- **Storage**: Cloudinary (Media/Documents) & AWS S3 (Backup).
+- **Real-time**: Socket.io for notifications and live updates.
+
+---
+
+## 📦 Installation & Setup
 
 ### Prerequisites
-- Node.js 18+
-- MongoDB Atlas account (free tier works)
-- Cloudinary account (free tier works)
+- Node.js (v18+)
+- MongoDB (Local or Atlas)
+- Cloudinary Account (for file storage)
 
-### 1. Clone and install
+### 1. Clone the repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/your-username/studyrepo.git
 cd studyrepo
-npm run install:all
 ```
 
-### 2. Configure server environment
+### 2. Backend Setup
 ```bash
 cd server
-cp .env.example .env
-# Edit .env with your actual credentials
+npm install
+```
+Create a `.env` file in the `server` directory using the `.env.example` as a template.
+
+```bash
+npm run dev
 ```
 
-**Required `.env` values:**
-```
-MONGO_URI=mongodb+srv://USER:PASS@cluster.mongodb.net/studyrepo
-JWT_SECRET=<run: openssl rand -hex 32>
-CLOUDINARY_CLOUD_NAME=xxx
-CLOUDINARY_API_KEY=xxx
-CLOUDINARY_API_SECRET=xxx
-CLIENT_ORIGIN=http://localhost:5173
-```
-
-### 3. Configure client environment
+### 3. Frontend Setup
 ```bash
 cd client
-cp .env.example .env
-# For local dev leave VITE_API_URL empty (Vite proxy handles it)
+npm install
+```
+Create a `.env` file in the `client` directory.
+```env
+VITE_API_URL=http://localhost:5000/api
 ```
 
-### 4. Run both servers
 ```bash
-# From project root:
 npm run dev
-# Frontend → http://localhost:5173
-# Backend  → http://localhost:5000
 ```
 
 ---
 
-## 🚀 Quick Deployment (Unified Host)
+## 📜 Deployment
 
-The application is now configured for a **unified deployment** (Server hosts the Client). This is simpler, avoids CORS issues in production, and only requires a single service.
+### Recommended Platforms
+- **Frontend**: Vercel or Netlify.
+- **Backend**: Render, Fly.io, or DigitalOcean.
+- **Database**: MongoDB Atlas.
 
-### 🌎 Recommended Host: [Render](https://render.com)
-
-1.  **New Web Service** → Connect your GitHub repo.
-2.  **Build Command**: `npm run build`
-3.  **Start Command**: `npm start`
-4.  **Environment**: Add all variables from `server/.env.example`.
-5.  Set `NODE_ENV=production` and `PORT=5000`.
-
-> [!IMPORTANT]
-> For more details (Docker, Atlas, Cloudinary setup), see [PRODUCTION.md](file:///c:/Users/KRISHNA%20BOBADE/Downloads/studyrepo/studyrepo/PRODUCTION.md).
-
-### Database → MongoDB Atlas
-
-1. Create free M0 cluster at [mongodb.com/atlas](https://www.mongodb.com/cloud/atlas)
-2. Add a database user
-3. Whitelist all IPs: `0.0.0.0/0` (or Render's specific IPs)
-4. Copy connection string to `MONGO_URI`
-
-### File Storage → Cloudinary
-
-1. Sign up at [cloudinary.com](https://cloudinary.com)
-2. Copy Cloud Name, API Key, API Secret from Dashboard
-3. Add to `.env`
+### Environment Variables
+Ensure all variables from `.env.example` are configured on your hosting platform.
 
 ---
 
-## 🔑 API Overview
+## 🤝 Contributing
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a PR.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/register` | Public | Register new user |
-| POST | `/api/auth/login` | Public | Login, receive JWT |
-| GET | `/api/auth/me` | JWT | Get current user |
-| GET | `/api/resources` | JWT | List/search resources |
-| POST | `/api/resources` | JWT | Upload new resource |
-| GET | `/api/resources/:id` | JWT | Get resource detail |
-| DELETE | `/api/resources/:id` | JWT+Owner | Delete resource |
-| POST | `/api/resources/:id/download` | JWT | Track download |
-| GET | `/api/resources/:id/comments` | JWT | Get reviews |
-| POST | `/api/resources/:id/comments` | JWT | Add review |
-| GET | `/api/users/me` | JWT | Get own profile |
-| PATCH | `/api/users/me` | JWT | Update profile |
-| GET | `/api/users/me/uploads` | JWT | My uploaded files |
-| GET | `/api/notifications` | JWT | Get notifications |
-| PATCH | `/api/notifications/mark-all-read` | JWT | Mark all read |
-| GET | `/api/analytics/stats` | JWT | Platform stats |
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🛡 Security Features
-
-- JWT authentication (7-day expiry)
-- bcrypt password hashing (cost factor 12)
-- Rate limiting (200 req/15min general, 10 login attempts/15min)
-- MongoDB injection sanitization (`express-mongo-sanitize`)
-- Helmet.js security headers
-- CORS with allowlist
-- File type + size validation (50 MB max)
-- Role-based access control (student / teacher / admin)
-
----
-
-## 🎨 Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, Vite, Tailwind CSS, Framer Motion |
-| State | Zustand |
-| Routing | React Router v6 |
-| HTTP | Axios with interceptors |
-| Backend | Node.js, Express.js |
-| Database | MongoDB + Mongoose ODM |
-| Auth | JWT (jsonwebtoken) + bcryptjs |
-| Files | Cloudinary + Multer |
-| Fonts | Syne (display), DM Sans (body), JetBrains Mono |
-
----
-
-## 👥 Team
-
-| Name | Roll No |
-|------|---------|
-| Krishna Bobade (Lead) | 1272240613 |
-| Parth Deshmukh | 1272240432 |
-| Jasnoor Singh | 1272240588 |
-
-MIT World Peace University, Pune — SYBCA-B — AY 2025-26
+### 📞 Support
+For emergency institutional support or bug reports, please contact [krishna.bobade@mitwpu.edu.in](mailto:krishna.bobade@mitwpu.edu.in).

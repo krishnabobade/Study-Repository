@@ -13,5 +13,6 @@ router.get('/me/saved', auth.protect, userController.getSavedResources);
 
 router.get('/:id/profile', auth.protect, userController.getPublicProfile);
 router.post('/:id/interact', auth.protect, userController.interactWithUser);
+router.delete('/:id', auth.protect, userController.deleteUser);
 
 module.exports = router;

@@ -15,21 +15,6 @@ exports.createAssignment = async (req, res) => {
       uploadedBy: req.user._id
     });
 
-    // Notify students of this course and semester
-    const students = await User.find({ role: 'student', course, semester });
-    const notifications = students.map(student => ({
-      userId: student._id,
-      type: 'alert',
-      message: `New Assignment uploaded: ${title} for ${subject}`
-    }));
-    if (notifications.length > 0) {
-      const inserted = await Notification.insertMany(notifications);
-      const io = require('../socket').getIo();
-      inserted.forEach(notif => {
-        io.to(`user_${notif.userId}`).emit('new_notification', notif);
-      });
-    }
-
     res.status(201).json({ success: true, assignment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -52,7 +37,10 @@ exports.getAssignments = async (req, res) => {
 exports.submitAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fileUrl, filePublicId } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please upload a file' });
+    }
 
     const assignment = await Assignment.findById(id);
     if (!assignment) return res.status(404).json({ message: 'Assignment not found' });
@@ -62,18 +50,20 @@ exports.submitAssignment = async (req, res) => {
       status = 'Late';
     }
 
+    const { uploadStream } = require('../utils/cloudinary');
+    const cloudinaryResult = await uploadStream(req.file.buffer, {
+      folder: 'studyrepo/submissions',
+      resource_type: 'auto',
+    });
+
+    const fileUrl = cloudinaryResult.secure_url;
+    const filePublicId = cloudinaryResult.public_id;
+
     const submission = await Submission.findOneAndUpdate(
       { assignmentId: id, studentId: req.user._id },
       { fileUrl, filePublicId, status, submittedAt: new Date() },
       { new: true, upsert: true }
     );
-
-    // Notify teacher
-    await Notification.create({
-      userId: assignment.uploadedBy,
-      type: 'info',
-      message: `${req.user.name} submitted assignment: ${assignment.title}`
-    });
 
     res.json({ success: true, submission });
   } catch (error) {

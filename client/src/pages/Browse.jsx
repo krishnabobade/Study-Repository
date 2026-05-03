@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import api from '../services/api'
 import ResourceCard from '../components/shared/ResourceCard'
-import { Skeleton } from '../components/shared/utils'
+import { SkeletonCard, SkeletonTitle, SkeletonText, SkeletonButton } from '../components/shared/Skeleton'
 import { getFlatCourses } from '../data/mitwpu'
 
 const COURSES = getFlatCourses()
@@ -157,15 +157,31 @@ export default function Browse() {
 
       {/* Results */}
       {loading
-        ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(9)].map((_, i) => <Skeleton key={i} className="h-44" />)}
+        ? <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {[...Array(9)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         : resources.length === 0
-          ? <div className="text-center py-20">
-              <p className="text-5xl mb-4">🔍</p>
-              <p className="text-text-main/60 font-medium">No resources found</p>
-              <p className="text-text-muted text-sm mt-1">Try adjusting your search or filters</p>
-            </div>
+          ? <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="card p-12 mt-4 flex flex-col items-center justify-center text-center border-dashed border-2 border-border/50 bg-gradient-to-b from-surface to-panel"
+            >
+              <div className="w-20 h-20 bg-ink-500/10 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                <Search size={36} className="text-ink-500" />
+              </div>
+              <h3 className="text-xl font-bold text-text-main mb-2">No resources found</h3>
+              <p className="text-text-muted max-w-sm mb-6">
+                We couldn't find any study materials matching your current filters. Try searching for a different topic or clearing your filters.
+              </p>
+              {hasFilters && (
+                <button 
+                  onClick={clearFilters}
+                  className="px-6 py-2.5 bg-panel border border-border hover:bg-surface text-text-main rounded-xl font-medium transition-colors shadow-sm"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </motion.div>
           : <>
               <p className="text-xs text-text-muted mb-4">{pagination.total} resource{pagination.total !== 1 ? 's' : ''} found</p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -9,23 +9,30 @@ import { useState } from 'react'
 
 export default function ResourceCard({ resource, compact = false }) {
   const [showPreview, setShowPreview] = useState(false)
+  const [localViews, setLocalViews] = useState(resource.views)
+  const [localDownloads, setLocalDownloads] = useState(resource.downloads)
 
   const handleDownload = async (e) => {
     if (e) e.preventDefault()
     try {
       const { data } = await api.post(`/resources/${resource._id}/download`)
       window.open(data.fileUrl, '_blank')
+      setLocalDownloads(d => d + 1)
     } catch {
       toast.error('Download failed')
     }
   }
 
-  const handleView = (e) => {
+  const handleView = async (e) => {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
     }
     setShowPreview(true)
+    try {
+      const { data } = await api.post(`/resources/${resource._id}/view`)
+      setLocalViews(data.views)
+    } catch (err) {}
   }
 
   return (
@@ -79,11 +86,11 @@ export default function ResourceCard({ resource, compact = false }) {
                 )}
                 <span className="flex items-center gap-1">
                   <Eye size={11} />
-                  {resource.views}
+                  {localViews}
                 </span>
                 <span className="flex items-center gap-1">
                   <Download size={11} />
-                  {resource.downloads}
+                  {localDownloads}
                 </span>
               </div>
             </div>

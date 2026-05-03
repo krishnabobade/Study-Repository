@@ -7,16 +7,18 @@ const { validateAcademicContent } = require('../middleware/academicValidator');
 
 router.get('/', resourceController.getAllResources);
 router.get('/trending', resourceController.getTrendingResources);
+router.get('/recommendations', auth.protect, resourceController.getRecommendations);
 router.get('/:id', resourceController.getResource);
 // Apply AI Content scanning right after file is uploaded to memory
-router.post('/', auth.protect, auth.authorize('teacher', 'admin'), upload.single('file'), validateAcademicContent, resourceController.createResource);
-router.delete('/:id', auth.protect, auth.authorize('teacher', 'admin'), resourceController.deleteResource);
+router.post('/', auth.protect, auth.authorize('teacher', 'hod'), upload.single('file'), validateAcademicContent, resourceController.createResource);
+router.delete('/:id', auth.protect, resourceController.deleteResource);
 router.post('/:id/download', auth.protect, resourceController.downloadResource);
+router.post('/:id/view', auth.protect, resourceController.recordView);
 router.post('/:id/interact', auth.protect, resourceController.interactResource);
 
 // Document Intelligence & Auth
 router.get('/verify-document/:id', resourceController.verifyDocument);
-router.post('/:id/version', auth.protect, auth.authorize('teacher', 'admin'), upload.single('file'), validateAcademicContent, resourceController.updateResourceVersion);
+router.post('/:id/version', auth.protect, upload.single('file'), validateAcademicContent, resourceController.updateResourceVersion);
 
 // Comment routes
 router.get('/:id/comments', resourceController.getComments);

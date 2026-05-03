@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Mail, Lock, User, GraduationCap, Eye, EyeOff, Check, X, Camera, Phone, Calendar, Building, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
+import { BookOpen, Mail, Lock, User, GraduationCap, Eye, EyeOff, Check, X, Camera, Phone, Calendar, Building, FileText, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
 import { MITWPU_SCHOOLS } from '../data/mitwpu'
 import AnimatedBackground from '../components/AnimatedBackground'
 import ThemeToggle from '../components/shared/ThemeToggle'
+import SEO from '../components/shared/SEO'
 
 const RegisterForm = () => {
   const [step, setStep] = useState(1);
@@ -20,6 +21,7 @@ const RegisterForm = () => {
   
   const [showPass, setShowPass] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
+  const [consentAccepted, setConsentAccepted] = useState(false)
   const [loading, setLoading] = useState(false)
   
   const { register } = useAuthStore()
@@ -45,11 +47,12 @@ const RegisterForm = () => {
   const isValidPassword = passwordCriteria.every(c => c.valid)
   const isValidEmail = form.email === '' || form.email.toLowerCase().endsWith('@mitwpu.edu.in')
 
-  const nextStep = () => {
+  const nextStep = (e) => {
     if (step === 1) {
-      if (!form.name || !form.email || (form.role === 'student' && !form.password)) return toast.error('Please fill required fields.');
+      if (!form.name || !form.email || !form.password) return toast.error('Please fill required fields.');
       if (!isValidEmail) return toast.error('Only @mitwpu.edu.in email addresses are permitted.');
       if (form.role === 'student' && !isValidPassword) return toast.error('Please meet all password requirements.');
+      if (!consentAccepted) return toast.error('You must accept Terms & Conditions to continue.');
       setStep(2);
     } else if (step === 2) {
       if (form.phone && form.phone.length !== 10) return toast.error('Phone number must be exactly 10 digits.');
@@ -60,10 +63,11 @@ const RegisterForm = () => {
   const prevStep = () => setStep(step - 1);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     
-    if (step < 3) return;
-    if (!form.course || !form.semester || !form.yearOfStudy) return toast.error('Academic details are required.')
+    if (form.role !== 'super_admin' && step < 3) return;
+    if (!consentAccepted) return toast.error('You must accept Terms & Conditions to continue.');
+    if (form.role !== 'super_admin' && (!form.course || !form.semester || !form.yearOfStudy)) return toast.error('Academic details are required.')
 
     setLoading(true)
     try {
@@ -108,7 +112,7 @@ const RegisterForm = () => {
           ))}
         </div>
 
-        <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }} className="space-y-4">
+        <form onSubmit={(step === 3 || form.role === 'super_admin') ? handleSubmit : (e) => { e.preventDefault(); nextStep(e); }} className="space-y-4">
           
           <AnimatePresence mode='wait'>
             {step === 1 && (
@@ -130,54 +134,56 @@ const RegisterForm = () => {
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
                   <select value={form.role} onChange={set('role')} required className="select pl-11">
                     <option value="student">Student</option>
-                    <option value="teacher">Instructor/Teacher</option>
+                    <option value="teacher">Faculty Member</option>
                   </select>
                 </div>
 
-                {form.role === 'student' ? (
-                  <>
-                    <div className="relative">
-                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
-                      <input 
-                        type={showPass ? 'text' : 'password'} 
-                        placeholder="Password *" 
-                        value={form.password}
-                        onChange={set('password')} 
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        required 
-                        className="input pl-11 pr-11" 
-                      />
-                      <button type="button" onClick={() => setShowPass(!showPass)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/60 hover:text-text-main transition-colors">
-                        {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <input 
+                    type={showPass ? 'text' : 'password'} 
+                    placeholder="Password *" 
+                    value={form.password}
+                    onChange={set('password')} 
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    required 
+                    className="input pl-11 pr-11" 
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/60 hover:text-text-main transition-colors">
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
 
-                    <AnimatePresence>
-                      {(isFocused || form.password.length > 0) && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                          className="bg-panel border border-border rounded-xl p-3 grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] sm:text-xs">
-                          {passwordCriteria.map(c => (
-                            <div key={c.id} className={`flex items-center gap-1.5 transition-colors duration-300 ${c.valid ? 'text-green-400' : 'text-text-muted/40'}`}>
-                              {c.valid ? <Check size={12} className="shrink-0" /> : <X size={12} className="shrink-0" />}
-                              <span>{c.label}</span>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </>
-                ) : (
-                  <div className="bg-ink-500/10 border border-ink-500/20 rounded-xl p-4 text-sm text-ink-300">
-                    <p className="font-medium mb-1 flex items-center gap-2"><Lock size={14}/> Default Password Rule</p>
-                    <p className="text-text-muted/80 text-xs mt-1 leading-relaxed">
-                      Faculty passwords are securely set to a fixed universal password: <br/>
-                      <strong className="text-text-main text-sm">Mitwpu@1234</strong><br/>
-                      <span className="text-ink-400/80 mt-2 block">Faculty default password is fixed. Contact admin for changes.</span>
-                    </p>
+                <div className="flex items-start gap-3 mt-4 mb-2">
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id="register-consent"
+                      type="checkbox"
+                      checked={consentAccepted}
+                      onChange={(e) => setConsentAccepted(e.target.checked)}
+                      className="w-4 h-4 rounded border-border bg-surface text-ink-500 focus:ring-ink-500/50 cursor-pointer"
+                    />
                   </div>
-                )}
+                  <label htmlFor="register-consent" className="text-xs text-text-muted leading-relaxed cursor-pointer select-none">
+                    I agree to the <Link to="/terms" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Terms & Conditions</Link> and <Link to="/privacy-policy" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Privacy Policy</Link> and accept the use of <Link to="/privacy-policy" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Cookies</Link>.
+                  </label>
+                </div>
+
+                <AnimatePresence>
+                  {form.role === 'student' && (isFocused || form.password.length > 0) && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      className="bg-panel border border-border rounded-xl p-3 grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] sm:text-xs">
+                      {passwordCriteria.map(c => (
+                        <div key={c.id} className={`flex items-center gap-1.5 transition-colors duration-300 ${c.valid ? 'text-green-400' : 'text-text-muted/40'}`}>
+                          {c.valid ? <Check size={12} className="shrink-0" /> : <X size={12} className="shrink-0" />}
+                          <span>{c.label}</span>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
 
@@ -266,8 +272,8 @@ const RegisterForm = () => {
                 <ChevronLeft size={18} /> Back
               </button>
             )}
-            {step < 3 ? (
-              <button type="button" onClick={nextStep} className="btn-primary flex-1 justify-center py-3">
+            {(step < 3 && form.role !== 'super_admin') ? (
+              <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center py-3">
                 Next <ChevronRight size={18} />
               </button>
             ) : (
@@ -280,10 +286,22 @@ const RegisterForm = () => {
         </form>
 
         {step === 1 && (
-          <p className="text-center text-sm text-text-muted/60 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-ink-400 hover:text-ink-300 font-medium">Sign in</Link>
-          </p>
+          <>
+            <p className="text-center text-sm text-text-muted/60 mt-6 mb-6">
+              Already have an account?{' '}
+              <Link to="/login" className="text-ink-400 hover:text-ink-300 font-medium transition-colors">Sign in</Link>
+            </p>
+            <div className="pt-5 border-t border-white/5 flex items-center justify-center gap-6">
+              <div className="flex items-center gap-1.5 text-xs text-text-muted/60" title="Secured with 256-bit encryption">
+                <Lock size={14} className="text-green-500/70" />
+                <span>Secure Signup</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-text-muted/60" title="Official Institutional Portal">
+                <ShieldCheck size={14} className="text-blue-500/70" />
+                <span>Verified Portal</span>
+              </div>
+            </div>
+          </>
         )}
 
       </div>
@@ -294,6 +312,7 @@ const RegisterForm = () => {
 export default function Register() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden py-12">
+      <SEO title="Create Account | Study Repository" description="Join the premium academic repository for students to share, discover, and download high-quality study materials." />
       <AnimatedBackground />
       <div className="absolute top-6 right-6 z-50">
         <ThemeToggle />

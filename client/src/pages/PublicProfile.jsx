@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Calendar, BookOpen, Download, LayoutDashboard, ChevronLeft, Award, FileText, ThumbsUp, ThumbsDown, Star } from 'lucide-react'
+import { User, Calendar, BookOpen, Download, LayoutDashboard, ChevronLeft, Award, FileText, ThumbsUp, ThumbsDown, Star, Trash2 } from 'lucide-react'
 import api from '../services/api'
 import { timeAgo } from '../components/shared/utils'
 import useAuthStore from '../store/authStore'
@@ -26,7 +26,7 @@ export default function PublicProfile() {
         setActivity(data.recentActivity || [])
         setMyInteraction(data.myInteraction || null)
       } catch (err) {
-        console.error(err)
+        // Silent fail or handle error
       } finally {
         setLoading(false)
       }
@@ -136,6 +136,24 @@ export default function PublicProfile() {
                     <Star key={star} onClick={() => handleInteract(undefined, star)} className={`cursor-pointer transition-colors ${myInteraction?.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-text-muted hover:text-yellow-400/50'}`} size={16} />
                   ))}
                 </div>
+                {user.role === 'super_admin' && (
+                  <button 
+                    onClick={async () => {
+                       if (!window.confirm('Are you sure you want to permanently delete this user account? This cannot be undone.')) return;
+                       try {
+                         await api.delete(`/users/${id}`);
+                         import('react-hot-toast').then(t => t.default.success('User deleted successfully.'));
+                         navigate('/dashboard');
+                       } catch (err) {
+                         import('react-hot-toast').then(t => t.default.error(err.response?.data?.message || 'Failed to delete user.'));
+                       }
+                    }}
+                    className="px-4 py-2 rounded-xl flex items-center gap-2 transition-colors border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 md:ml-auto"
+                  >
+                    <Trash2 size={16} />
+                    <span className="text-sm font-semibold">Delete User</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -152,11 +170,6 @@ export default function PublicProfile() {
             <Download size={22} className="text-ink-400 mb-3 opacity-90" />
             <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{profile.totalDownloads || 0}</p>
             <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Downloads</p>
-          </div>
-          <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
-            <Award size={22} className="text-ink-400 mb-3 opacity-90" />
-            <p className="text-[26px] leading-none font-display font-bold text-text-main mb-2">{(profile.totalDownloads || 0) * 3 + (profile.totalUploads || 0) * 15 + ((profile.documentLikes || 0) * 5)}</p>
-            <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">Total Rep</p>
           </div>
           <div className="bg-panel/50 border border-border rounded-2xl p-5 text-center flex flex-col items-center justify-center shadow-sm">
             <ThumbsUp size={22} className="text-ink-400 mb-3 opacity-90" />

@@ -1,31 +1,61 @@
 import { X, ExternalLink, Download } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function DocumentViewer({ url, type, title, onClose, onDownload }) {
-  const isImage = type === 'image'
-  const isPDF = type === 'pdf'
-  const isVideo = type === 'video'
+  const [isClosing, setIsClosing] = useState(false)
   
-  // For Office files, we use Google Docs viewer
-  const isOffice = ['doc', 'ppt'].includes(type)
+  // Normalize type
+  const t = (type || '').toLowerCase();
+  
+  const isImage = ['image', 'jpg', 'jpeg', 'png', 'gif', 'webp'].some(ext => t.includes(ext));
+  const isPDF = t.includes('pdf');
+  const isVideo = ['video', 'mp4', 'webm', 'ogg'].some(ext => t.includes(ext));
+  
+  // For Office files we use Google Docs viewer. PDFs are rendered natively.
+  const isOffice = ['doc', 'ppt', 'msword', 'presentation', 'wordprocessingml'].some(ext => t.includes(ext));
+  
+  let safeUrl = url;
+  try {
+    const parsed = new URL(url);
+    if (isOffice && !parsed.pathname.match(/\.[a-z]{3,4}$/i)) {
+      const ext = t.includes('presentation') || t.includes('ppt') ? '.pptx' : '.docx';
+      parsed.pathname = `${parsed.pathname}${ext}`;
+      safeUrl = parsed.toString();
+    }
+  } catch (e) {
+    if (isOffice && !url.match(/\.[a-z]{3,4}($|\?)/i)) {
+      const ext = t.includes('presentation') || t.includes('ppt') ? '.pptx' : '.docx';
+      safeUrl = `${url}${ext}`;
+    }
+  }
+  
   const viewerUrl = isOffice 
-    ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true` 
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(safeUrl)}&embedded=true` 
     : url
 
-  return (
-    <AnimatePresence>
+  const handleClose = (e) => {
+    if (e) e.stopPropagation();
+    setIsClosing(true);
+    // 1. Immediately sets iframe src to about:blank (React state update)
+    // 2. Gives the browser exactly enough time to clear the heavy GPU renderer process
+    // 3. Then unmounts the DOM node cleanly
+    setTimeout(() => {
+      onClose();
+    }, 10);
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 bg-surface/80 backdrop-blur-sm"
+      onClick={handleClose}
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 bg-surface/50 backdrop-blur-sm"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          className="relative w-full h-full max-w-6xl bg-surface border border-border rounded-2xl overflow-hidden flex flex-col shadow-2xl"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.15 }}
+        className="relative w-full h-full max-w-6xl bg-surface border border-border rounded-2xl overflow-hidden flex flex-col shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -52,7 +82,7 @@ export default function DocumentViewer({ url, type, title, onClose, onDownload }
                 <ExternalLink size={18} />
               </a>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-2"
                 title="Close"
               >
@@ -64,30 +94,50 @@ export default function DocumentViewer({ url, type, title, onClose, onDownload }
           {/* Content */}
           <div className="flex-1 bg-surface/50 overflow-auto flex items-center justify-center">
             {isImage && (
-              <img src={url} alt={title} className="max-w-full max-h-full object-contain" />
+              <img src={isClosing ? '' : url} alt={title} className="max-w-full max-h-full object-contain" />
             )}
             
-            {isPDF && (
-              <iframe
-                src={`${url}#toolbar=0`}
-                className="w-full h-full border-none bg-white"
-                title={title}
-              />
+            {isVideo && (
+              <video src={isClosing ? '' : url} controls className="max-w-full max-h-full" />
             )}
 
-            {isVideo && (
-              <video src={url} controls className="max-w-full max-h-full" />
+            {isPDF && (
+              <object
+                data={isClosing ? 'about:blank' : viewerUrl}
+                type="application/pdf"
+                className="w-full h-full border-none bg-white"
+              >
+                <div className="flex items-center justify-center h-full p-8 text-center bg-surface">
+                  <div>
+                    <h4 className="text-text-main font-medium mb-2">Native PDF Viewer Unavailable</h4>
+                    <p className="text-text-muted text-sm mb-4">Your browser doesn't support embedded PDFs.</p>
+                    <a href={viewerUrl} target="_blank" rel="noreferrer" className="btn-primary">
+                      Open in New Tab
+                    </a>
+                  </div>
+                </div>
+              </object>
             )}
 
             {isOffice && (
-              <iframe
-                src={viewerUrl}
-                className="w-full h-full border-none bg-white"
-                title={title}
-              />
+              url.startsWith('blob:') || url.startsWith('http://localhost') ? (
+                <div className="text-center p-8">
+                  <div className="w-16 h-16 rounded-2xl bg-panel border border-border flex items-center justify-center mx-auto mb-4">
+                    <ExternalLink size={32} className="text-text-muted/20" />
+                  </div>
+                  <h4 className="text-text-main font-medium mb-2">Local Preview Unavailable</h4>
+                  <p className="text-text-muted text-sm mb-6">Office documents cannot be previewed locally before uploading.</p>
+                </div>
+              ) : (
+                <iframe
+                  src={isClosing ? 'about:blank' : viewerUrl}
+                  className="w-full h-full border-none bg-white"
+                  title={title}
+                />
+              )
             )}
 
-            {!isImage && !isPDF && !isVideo && !isOffice && (
+            {!isImage && !isVideo && !isPDF && !isOffice && (
               <div className="text-center p-8">
                 <div className="w-16 h-16 rounded-2xl bg-panel border border-border flex items-center justify-center mx-auto mb-4">
                   <ExternalLink size={32} className="text-text-muted/20" />
@@ -105,7 +155,7 @@ export default function DocumentViewer({ url, type, title, onClose, onDownload }
             )}
           </div>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  )
-}
+      </div>,
+      document.body
+    )
+  }

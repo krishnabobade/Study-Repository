@@ -13,28 +13,6 @@ exports.createAnnouncement = async (req, res) => {
       authorId: req.user._id
     });
 
-    // Determine target users for notifications
-    let filter = { role: 'student' };
-    if (!isGlobal) {
-      if (targetCourses && targetCourses.length > 0) filter.course = { $in: targetCourses };
-      if (targetSemesters && targetSemesters.length > 0) filter.semester = { $in: targetSemesters };
-    }
-
-    const targetUsers = await User.find(filter);
-    const notifications = targetUsers.map(u => ({
-      userId: u._id,
-      type: 'info',
-      message: `Announcement: ${title}`
-    }));
-
-    if (notifications.length > 0) {
-      const inserted = await Notification.insertMany(notifications);
-      const io = require('../socket').getIo();
-      inserted.forEach(notif => {
-        io.to(`user_${notif.userId}`).emit('new_notification', notif);
-      });
-    }
-
     res.status(201).json({ success: true, announcement });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

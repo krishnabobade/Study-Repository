@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   TrendingUp, Upload, Users, FileText, ArrowRight, Flame, 
-  Sparkles, TrendingDown, Calendar, Award 
+  Sparkles, TrendingDown, Calendar, Award, Search, User 
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
 import api from '../services/api'
 import ResourceCard from '../components/shared/ResourceCard'
-import { Skeleton } from '../components/shared/utils'
+import Skeleton, { SkeletonText, SkeletonTitle, SkeletonAvatar, SkeletonImage, SkeletonCard, SkeletonList } from '../components/shared/Skeleton.jsx'
+
 
 const CATEGORIES = [
   { key: 'notes',      label: 'Notes',       emoji: '📝', color: 'from-ink-600/30 to-ink-500/10' },
@@ -42,7 +44,7 @@ function StatCard({ icon: Icon, label, value, delta, color }) {
       
       <div className="relative z-10">
         <p className="text-3xl font-display font-bold text-text-main bg-clip-text">
-          {value ?? <Skeleton className="w-12 h-8" />}
+          {value ?? <SkeletonTitle width="50%" className="h-8 mb-1" />}
         </p>
         <p className="text-xs text-text-muted mt-1 font-medium tracking-wide uppercase">{label}</p>
       </div>
@@ -67,7 +69,6 @@ export default function Dashboard() {
       setTrending(t.data.resources.slice(0, 4))
       setStats(s.data.stats)
     }).catch((err) => {
-      console.error('Dashboard Fetch Error:', err)
       toast.error('Failed to load dashboard data.')
     }).finally(() => setLoading(false))
   }, [])
@@ -98,6 +99,39 @@ export default function Dashboard() {
         <p className="text-text-muted text-sm mt-2 font-medium">Ready to explore and share study resources?</p>
       </motion.div>
 
+      {/* Onboarding / Getting Started (Shows if user is new) */}
+      {(user?.role !== 'super_admin' && user?.totalUploads === 0 && (!stats || stats.totalDownloads === 0)) && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-ink-500/10 to-primary-500/5 border border-ink-500/20 rounded-2xl p-6 relative overflow-hidden"
+        >
+          <div className="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-ink-500/10 to-transparent pointer-events-none" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-ink-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-ink-500/20">
+              <Sparkles size={24} className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-text-main mb-1">Getting Started</h3>
+              <p className="text-sm text-text-muted mb-4 max-w-2xl">
+                Welcome to your new Study Repository! Your dashboard is looking a little empty right now. Here are some quick actions to get you up to speed.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/upload" className="px-4 py-2 bg-ink-500 hover:bg-ink-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm inline-flex items-center gap-2">
+                  <Upload size={16} /> Upload a Note
+                </Link>
+                <Link to="/browse" className="px-4 py-2 bg-panel border border-border hover:bg-surface text-text-main rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2">
+                  <Search size={16} /> Browse Resources
+                </Link>
+                <Link to="/profile" className="px-4 py-2 bg-panel border border-border hover:bg-surface text-text-main rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2">
+                  <User size={16} /> Complete Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Stats */}
       <motion.div variants={container} initial="hidden" animate="show"
         className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -105,7 +139,7 @@ export default function Dashboard() {
           <StatCard icon={FileText} label="Total Resources" value={stats?.totalResources} color="bg-ink-500/30" />
         </motion.div>
         <motion.div variants={item}>
-          <StatCard icon={Users} label="Students" value={stats?.totalUsers} color="bg-cyan-500/20" />
+          <StatCard icon={Users} label="Users" value={stats?.totalUsers} color="bg-cyan-500/20" />
         </motion.div>
         <motion.div variants={item}>
           <StatCard icon={TrendingUp} label="Total Downloads" value={stats?.totalDownloads} color="bg-green-500/20" />
@@ -135,7 +169,7 @@ export default function Dashboard() {
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {CATEGORIES.map(({ key, label, emoji, color }) => (
             <motion.div key={key} variants={item} whileHover={{ y: -4, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link to={`/browse?category=${key}`}
+              <Link to={key === 'assignment' ? '/assignments' : `/browse?category=${key}`}
                 className={`flex flex-col items-center justify-center p-5 rounded-2xl bg-gradient-to-br ${color} border border-white/5
                            hover:shadow-lg hover:shadow-ink-500/10 transition-all duration-300 group`}>
                 <div className="text-3xl mb-3 drop-shadow-md group-hover:scale-110 transition-transform duration-300">{emoji}</div>
@@ -169,10 +203,20 @@ export default function Dashboard() {
             {loading ? (
               <div className="space-y-3">
                 {[...Array(3)].map((_, i) => (
-                  <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <Skeleton className="h-28" />
-                  </motion.div>
+                  <div key={i} className="bg-panel border border-border rounded-2xl p-4 flex gap-4 animate-pulse">
+                    <SkeletonImage ratio="16/9" className="w-32 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <SkeletonTitle width="40%" />
+                      <SkeletonText lines={2} />
+                    </div>
+                  </div>
                 ))}
+              </div>
+            ) : recent.length === 0 ? (
+              <div className="card p-8 flex flex-col items-center justify-center text-center border-dashed">
+                <FileText size={32} className="text-text-muted/50 mb-3" />
+                <p className="text-sm font-semibold text-text-main">No recent uploads</p>
+                <p className="text-xs text-text-muted mt-1">Be the first to share a resource!</p>
               </div>
             ) : (
               <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
@@ -209,6 +253,10 @@ export default function Dashboard() {
             {loading ? (
               <div className="space-y-2 p-2">
                 {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
+              </div>
+            ) : trending.length === 0 ? (
+              <div className="p-6 text-center">
+                <p className="text-sm font-medium text-text-muted">No trending items yet</p>
               </div>
             ) : (
               <motion.div variants={container} initial="hidden" animate="show" className="space-y-1">

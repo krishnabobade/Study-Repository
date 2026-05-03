@@ -21,6 +21,14 @@ const resourceSchema = new mongoose.Schema({
   dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   isApproved: { type: Boolean, default: true },
   
+  // Advanced Organization & Multi-Tenancy
+  institutionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Institution' },
+  department: { type: String },
+
+  // Archival and Expiration
+  isArchived: { type: Boolean, default: false },
+  expiresAt: { type: Date },
+
   // High-Security & Auth System
   documentId: { type: String, unique: true, sparse: true },
   fileHash: { type: String },
@@ -38,7 +46,11 @@ const resourceSchema = new mongoose.Schema({
   autoTags: [{ type: String }]
 }, { timestamps: true });
 
+// Advanced Indexing for Scale
 resourceSchema.index({ title: 'text', description: 'text', subject: 'text', autoTags: 'text' });
 resourceSchema.index({ fileHash: 1 });
+resourceSchema.index({ institutionId: 1, department: 1, category: 1 });
+resourceSchema.index({ downloads: -1, ratingCount: -1 }); // Trending queries
+resourceSchema.index({ uploadedBy: 1 });
 
 module.exports = mongoose.model('Resource', resourceSchema);

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Trash2, Download, Eye, FolderOpen, ExternalLink } from 'lucide-react'
+import { Trash2, Download, Eye, FolderOpen, ExternalLink, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { FileTypeBadge, CategoryBadge, timeAgo } from '../components/shared/utils'
-import { Skeleton } from '../components/shared/utils'
+import Skeleton from '../components/shared/Skeleton.jsx'
 import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function MyFiles() {
@@ -51,11 +51,25 @@ export default function MyFiles() {
       {loading ? (
         <div className="space-y-3">{[...Array(5)].map((_,i) => <Skeleton key={i} className="h-20" />)}</div>
       ) : resources.length === 0 ? (
-        <div className="text-center py-24">
-          <FolderOpen size={48} className="mx-auto text-text-muted/10 mb-4" />
-          <p className="text-text-muted font-medium">No uploads yet</p>
-          <p className="text-text-muted/60 text-sm mt-1">Start sharing resources with your peers</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="card p-12 flex flex-col items-center justify-center text-center border-dashed border-2 border-border/50 bg-gradient-to-b from-surface to-panel"
+        >
+          <div className="w-20 h-20 bg-ink-500/10 rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <FolderOpen size={36} className="text-ink-500" />
+          </div>
+          <h3 className="text-xl font-bold text-text-main mb-2">No files uploaded yet</h3>
+          <p className="text-text-muted max-w-sm mb-8">
+            Your uploaded notes, assignments, and study materials will safely appear here. Start sharing with your peers!
+          </p>
+          <button 
+            onClick={() => window.location.href='/upload'}
+            className="px-6 py-3 bg-ink-500 hover:bg-ink-600 text-white rounded-xl font-medium flex items-center gap-2 transition-all shadow-lg shadow-ink-500/25 hover:shadow-ink-500/40 hover:-translate-y-0.5"
+          >
+            <Upload size={18} /> Upload First File
+          </button>
+        </motion.div>
       ) : (
         <div className="card overflow-hidden">
           <div className="px-5 py-3 border-b border-border flex items-center justify-between">
@@ -71,7 +85,13 @@ export default function MyFiles() {
 
                 {/* Icon - Clickable for Preview */}
                 <button 
-                  onClick={() => setPreviewFile(r)}
+                  onClick={async () => {
+                    setPreviewFile(r);
+                    try {
+                      const { data } = await api.post(`/resources/${r._id}/view`);
+                      setResources(prev => prev.map(item => item._id === r._id ? { ...item, views: data.views } : item));
+                    } catch (err) {}
+                  }}
                   className="w-10 h-10 rounded-xl bg-ink-500/15 flex items-center justify-center shrink-0 text-lg hover:bg-ink-500/25 transition-colors cursor-pointer"
                   title="Quick View"
                 >
@@ -105,7 +125,13 @@ export default function MyFiles() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setPreviewFile(r)}
+                  <button onClick={async () => {
+                    setPreviewFile(r);
+                    try {
+                      const { data } = await api.post(`/resources/${r._id}/view`);
+                      setResources(prev => prev.map(item => item._id === r._id ? { ...item, views: data.views } : item));
+                    } catch (err) {}
+                  }}
                     className="p-2 rounded-lg hover:bg-panel text-text-muted hover:text-text-main transition-colors"
                     title="View Document">
                     <Eye size={14} />

@@ -98,29 +98,31 @@ export default function Profile() {
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="badge bg-ink-500/20 text-ink-300 capitalize">{user?.role}</span>
               {user?.collegeName && <span className="badge bg-panel border border-border text-text-muted">{user.collegeName}</span>}
-              {user?.course && <span className="badge bg-panel border border-border text-text-muted">{user.course}</span>}
-              {user?.yearOfStudy && <span className="badge bg-panel border border-border text-text-muted">Year {user.yearOfStudy}</span>}
-              {user?.semester && <span className="badge bg-panel border border-border text-text-muted">Sem {user.semester}</span>}
+              {user?.role !== 'super_admin' && user?.course && <span className="badge bg-panel border border-border text-text-muted">{user.course}</span>}
+              {user?.role !== 'super_admin' && user?.yearOfStudy && <span className="badge bg-panel border border-border text-text-muted">Year {user.yearOfStudy}</span>}
+              {user?.role !== 'super_admin' && user?.semester && <span className="badge bg-panel border border-border text-text-muted">Sem {user.semester}</span>}
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5 pt-5 border-t border-border">
-          {[
-            ['Total Uploads', user?.totalUploads ?? 0], 
-            ['Total Downloads', user?.totalDownloads ?? 0],
-            ['Total Likes', user?.totalLikes ?? 0],
-            ['Total Dislikes', user?.totalDislikes ?? 0],
-            ['Avg Rating', user?.avgRating ?? 0],
-            ['Ratings', user?.ratingCount ?? 0]
-          ].map(([label, val]) => (
-            <div key={label} className="text-center p-3 rounded-xl bg-panel/30 border border-border">
-              <p className="text-2xl font-display font-bold text-ink-300">{val}</p>
-              <p className="text-xs text-text-muted mt-0.5">{label}</p>
-            </div>
-          ))}
-        </div>
+        {user?.role !== 'super_admin' && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5 pt-5 border-t border-border">
+            {[
+              ['Total Uploads', user?.totalUploads ?? 0], 
+              ['Total Downloads', user?.totalDownloads ?? 0],
+              ['Total Likes', user?.totalLikes ?? 0],
+              ['Total Dislikes', user?.totalDislikes ?? 0],
+              ['Avg Rating', user?.avgRating ?? 0],
+              ['Ratings', user?.ratingCount ?? 0]
+            ].map(([label, val]) => (
+              <div key={label} className="text-center p-3 rounded-xl bg-panel/30 border border-border">
+                <p className="text-2xl font-display font-bold text-ink-300">{val}</p>
+                <p className="text-xs text-text-muted mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Edit profile form */}
@@ -134,33 +136,46 @@ export default function Profile() {
             <input type="date" className="input text-text-muted" value={form.dob} onChange={set('dob')} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <select className="select" value={form.gender} onChange={set('gender')}>
-              <option value="Prefer not to say">Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            <select className="select" value={form.yearOfStudy} onChange={set('yearOfStudy')}>
-              <option value="">Year of Study</option>
-              {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
-            </select>
-          </div>
+          {user?.role !== 'super_admin' ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <select className="select" value={form.gender} onChange={set('gender')}>
+                  <option value="Prefer not to say">Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <select className="select" value={form.yearOfStudy} onChange={set('yearOfStudy')}>
+                  <option value="">Year of Study</option>
+                  {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+                </select>
+              </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <select className="select" value={form.course} onChange={set('course')}>
-              <option value="">Course</option>
-              {MITWPU_SCHOOLS.map(school => (
-                <optgroup key={school.name} label={school.name}>
-                  {school.courses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </optgroup>
-              ))}
-            </select>
-            <select className="select" value={form.semester} onChange={set('semester')}>
-              <option value="">Semester</option>
-              {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Sem {s}</option>)}
-            </select>
-          </div>
+              <div className="grid grid-cols-2 gap-3">
+                <select className="select" value={form.course} onChange={set('course')}>
+                  <option value="">Course</option>
+                  {MITWPU_SCHOOLS.map(school => (
+                    <optgroup key={school.name} label={school.name}>
+                      {school.courses.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                    </optgroup>
+                  ))}
+                </select>
+                <select className="select" value={form.semester} onChange={set('semester')}>
+                  <option value="">Semester</option>
+                  {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-1">
+              <select className="select" value={form.gender} onChange={set('gender')}>
+                <option value="Prefer not to say">Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          )}
 
           <textarea className="input resize-none h-24 py-3" placeholder="Bio (optional)"
             value={form.bio} onChange={set('bio')} maxLength={300} />

@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /settings
+Disallow: /profile
 
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://studyrepo.com/sitemap.xml

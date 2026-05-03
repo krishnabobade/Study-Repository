@@ -5,7 +5,7 @@ let CACHE = { data: null, timestamp: 0 };
 
 exports.getStats = async (req, res) => {
   try {
-    const isAdmin = req.user && req.user.role === 'admin';
+    const isAdmin = req.user && ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
     const now = Date.now();
     
     // Serve from cache if less than 30s old (only non-admin as admin needs live counts)
@@ -25,12 +25,17 @@ exports.getStats = async (req, res) => {
     let detailedStats = {};
     if (isAdmin) {
       const activeStudents = await User.countDocuments({ role: 'student' });
-      const activeTeachers = await User.countDocuments({ role: 'teacher' });
+      const activeTeachers = await User.countDocuments({ role: { $in: ['teacher', 'hod'] } });
       
       const CategoryBreakdown = await Resource.aggregate([
         { $group: { _id: '$category', count: { $sum: 1 } } }
       ]);
-      detailedStats = { activeStudents, activeTeachers, CategoryBreakdown };
+      
+      const DepartmentBreakdown = await Resource.aggregate([
+        { $group: { _id: '$department', count: { $sum: 1 } } }
+      ]);
+
+      detailedStats = { activeStudents, activeTeachers, CategoryBreakdown, DepartmentBreakdown };
     }
 
     const payload = {
@@ -58,7 +63,8 @@ exports.getTeacherAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
     // Teacher should only see their own stats unless admin
-    if (req.user.role !== 'admin' && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const isAdmin = ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    if (!isAdmin && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
 
     const totalUploads = await Resource.countDocuments({ uploadedBy: id });
     const resources = await Resource.find({ uploadedBy: id });
@@ -70,13 +76,10 @@ exports.getTeacherAnalytics = async (req, res) => {
       totalDownloads += r.downloads;
     });
 
-    // Simulated engagement: views + (downloads * 3)
-    const overallEngagementScore = totalViews + (totalDownloads * 3);
-
     res.json({
       success: true,
       teacherId: id,
-      stats: { totalUploads, totalViews, totalDownloads, overallEngagementScore }
+      stats: { totalUploads, totalViews, totalDownloads }
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -86,7 +89,8 @@ exports.getTeacherAnalytics = async (req, res) => {
 exports.getStudentAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
-    if (req.user.role !== 'admin' && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
+    const isAdmin = ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    if (!isAdmin && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
 
     const user = await User.findById(id).populate('viewedResources');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
@@ -102,16 +106,13 @@ exports.getStudentAnalytics = async (req, res) => {
       .map(entry => entry[0])
       .slice(0, 3);
 
-    const studyActivityScore = user.viewedResources.length + (user.totalDownloads * 2);
-
     res.json({
       success: true,
       studentId: id,
       stats: {
         totalDownloads: user.totalDownloads,
         totalResourcesViewed: user.viewedResources.length,
-        mostActiveSubjects,
-        studyActivityScore
+        mostActiveSubjects
       }
     });
   } catch (err) {

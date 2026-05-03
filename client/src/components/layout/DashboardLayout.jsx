@@ -1,14 +1,17 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Search, Upload, FolderOpen, User,
-  Bell, LogOut, Menu, X, BookOpen, ChevronRight, GraduationCap
+  Bell, LogOut, Menu, X, BookOpen, ChevronRight, GraduationCap, MessageSquare,
+  Users, FileText, Shield
 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import api from '../../services/api'
 import ThemeToggle from '../shared/ThemeToggle'
+import SEO from '../shared/SEO'
 import { io } from 'socket.io-client';
+import FeedbackWidget from '../shared/FeedbackWidget';
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,6 +20,10 @@ const NAV = [
   { to: '/upload',    icon: Upload,          label: 'Upload' },
   { to: '/my-files',  icon: FolderOpen,      label: 'My Files' },
   { to: '/profile',   icon: User,            label: 'Profile' },
+  { to: '/admin/users', icon: Users,         label: 'Manage Users',    adminOnly: true },
+  { to: '/admin/resources', icon: FileText,  label: 'Manage Files',    adminOnly: true },
+  { to: '/feedback',  icon: MessageSquare,   label: 'User Feedback',   adminOnly: true },
+  { to: '/admin/logs', icon: Shield,         label: 'Audit Logs',      adminOnly: true },
 ]
 
 export default function DashboardLayout() {
@@ -28,13 +35,28 @@ export default function DashboardLayout() {
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
+  const notifRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifOpen(false)
+      }
+    }
+    if (notifOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [notifOpen])
 
   useEffect(() => {
     // Initial fetch
     api.get('/notifications').then(r => {
       setNotifications(r.data.notifications || []);
       setUnread(r.data.unreadCount || 0);
-    }).catch(console.error);
+    }).catch(() => {});
 
     // Socket.IO Realtime Connection
     if (!user) return;
@@ -85,7 +107,11 @@ export default function DashboardLayout() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-0.5">
-        {NAV.map(({ to, icon: Icon, label }) => (
+        {NAV.filter(item => {
+          if (item.adminOnly && user?.role !== 'super_admin') return false;
+          if (user?.role === 'super_admin' && (item.to === '/upload' || item.to === '/my-files')) return false;
+          return true;
+        }).map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to}
             onClick={() => mobile && setSidebarOpen(false)}
             className={({ isActive }) =>
@@ -103,17 +129,48 @@ export default function DashboardLayout() {
         ))}
       </nav>
 
-      <div className="mx-3 mb-4 p-4 rounded-xl bg-panel border border-border">
-        <p className="text-xs text-text-muted mb-3 font-medium uppercase tracking-wider">Quick Stats</p>
-        <div className="space-y-2">
+      {user?.role !== 'super_admin' && (
+        <div className="mx-3 mb-4 p-4 rounded-xl bg-panel border border-border">
+          <p className="text-xs text-text-muted mb-3 font-medium uppercase tracking-wider">Quick Stats</p>
+          <div className="space-y-2">
+            {[
+              ['Uploads', user?.totalUploads ?? 0],
+              ['Downloads', user?.totalDownloads ?? 0],
+            ].map(([label, val]) => (
+              <div key={label} className="flex justify-between items-center">
+                <span className="text-xs text-text-muted/70">{label}</span>
+                <span className="text-xs font-semibold text-ink-300">{val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mx-3 mb-4 border-t border-border pt-4">
+        <p className="text-[10px] text-text-muted mb-2 font-medium uppercase tracking-wider px-2">Support & Legal</p>
+        <div className="flex flex-col gap-1">
           {[
-            ['Uploads', user?.totalUploads ?? 0],
-            ['Downloads', user?.totalDownloads ?? 0],
-          ].map(([label, val]) => (
-            <div key={label} className="flex justify-between items-center">
-              <span className="text-xs text-text-muted/70">{label}</span>
-              <span className="text-xs font-semibold text-ink-300">{val}</span>
-            </div>
+            { label: 'Help Center', to: '/help' },
+            { label: 'Report Bug', to: '/bug-report' },
+            { label: 'Emergency Support', to: 'mailto:krishna.bobade@mitwpu.edu.in', external: true },
+            { label: 'Terms', to: '/terms' },
+            { label: 'Privacy', to: '/privacy-policy' }
+          ].map((link) => link.external ? (
+            <a
+              key={link.label}
+              href={link.to}
+              className="text-xs text-text-muted hover:text-text-main px-2 py-1.5 rounded-lg hover:bg-panel transition-colors"
+            >
+              {link.label}
+            </a>
+          ) : (
+            <NavLink
+              key={link.label}
+              to={link.to}
+              className="text-xs text-text-muted hover:text-text-main px-2 py-1.5 rounded-lg hover:bg-panel transition-colors"
+            >
+              {link.label}
+            </NavLink>
           ))}
         </div>
       </div>
@@ -138,6 +195,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-surface overflow-hidden">
+      <SEO noindex={true} title="Dashboard | Study Repository" />
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-60 bg-panel border-r border-border shrink-0">
         <Sidebar />
@@ -163,7 +221,7 @@ export default function DashboardLayout() {
       {/* Main area */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="h-14 bg-panel/80 backdrop-blur border-b border-border flex items-center px-4 gap-4 shrink-0">
+        <header className="relative z-50 h-14 bg-panel/80 backdrop-blur border-b border-border flex items-center px-4 gap-4 shrink-0">
           <button onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 rounded-lg hover:bg-panel text-text-muted">
             <Menu size={18} />
@@ -174,7 +232,7 @@ export default function DashboardLayout() {
           <ThemeToggle />
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button onClick={() => setNotifOpen(o => !o)}
               className="relative p-2 rounded-xl hover:bg-panel text-text-muted hover:text-text-main transition-colors">
               <Bell size={18} />
@@ -193,7 +251,7 @@ export default function DashboardLayout() {
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-12 w-80 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <div className="flex items-center justify-between px-4 py-3 pr-10 border-b border-border">
                     <span className="text-sm font-semibold text-text-main">Notifications</span>
                     {unread > 0 && (
                       <button onClick={markAllRead} className="text-xs text-ink-400 hover:text-ink-300">
@@ -307,6 +365,8 @@ export default function DashboardLayout() {
           </div>
         )}
       </AnimatePresence>
+
+      {user?.role !== 'super_admin' && <FeedbackWidget />}
     </div>
   )
 }

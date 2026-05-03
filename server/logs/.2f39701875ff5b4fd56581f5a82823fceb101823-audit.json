@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\KRISHNA BOBADE\\Downloads\\studyrepo\\server\\logs\\.2f39701875ff5b4fd56581f5a82823fceb101823-audit.json",
+    "files": [
+        {
+            "date": 1777820598440,
+            "name": "C:\\Users\\KRISHNA BOBADE\\Downloads\\studyrepo\\server\\logs\\combined-2026-05-03.log",
+            "hash": "c19d6257c3119cae0ff24b522a74fd715fc9364cca586dc3b42ba7de6cf0bf7b"
+        }
+    ],
+    "hashType": "sha256"
+}

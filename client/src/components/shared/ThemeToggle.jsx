@@ -10,6 +10,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="relative p-2 rounded-xl bg-panel border border-border text-text-muted hover:text-text-main transition-all group overflow-hidden"
       title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      aria-label={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
       <div className="relative z-10">
         <AnimatePresence mode="wait" initial={false}>

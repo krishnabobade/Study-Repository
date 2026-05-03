@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import api from '../services/api'
 import useAuthStore from '../store/authStore'
 import { FileTypeBadge, CategoryBadge, Stars, timeAgo, formatSize } from '../components/shared/utils'
-import { Skeleton } from '../components/shared/utils'
+import { SkeletonTitle, SkeletonText, SkeletonImage } from '../components/shared/Skeleton'
 import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function ResourceDetail() {
@@ -84,10 +84,18 @@ export default function ResourceDetail() {
   }
 
   if (loading) return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
-      <Skeleton className="h-8 w-32" />
-      <Skeleton className="h-48" />
-      <Skeleton className="h-32" />
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <SkeletonTitle width="40%" className="mb-4" />
+      <div className="card p-6 space-y-4">
+        <SkeletonImage ratio="16/9" />
+        <div className="space-y-3">
+          <SkeletonTitle width="60%" />
+          <SkeletonText lines={3} />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-12 bg-panel rounded-xl animate-pulse" />)}
+        </div>
+      </div>
     </div>
   )
 
@@ -196,7 +204,13 @@ export default function ResourceDetail() {
             </button>
           )}
 
-          <button onClick={() => setShowPreview(true)}
+          <button onClick={async () => {
+            setShowPreview(true);
+            try {
+              const { data } = await api.post(`/resources/${id}/view`);
+              setResource(r => ({ ...r, views: data.views }));
+            } catch (err) {}
+          }}
             className="btn-ghost border border-border px-4 py-3 text-text-muted hover:text-text-main"
             title="Preview Document">
             <Eye size={16} /> Preview
