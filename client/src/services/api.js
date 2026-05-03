@@ -1,8 +1,16 @@
 import axios from 'axios'
 
 const getBaseURL = () => {
-  const url = import.meta.env.VITE_API_URL;
-  if (!url) return '/api'; // Use local proxy
+  let url = import.meta.env.VITE_API_URL;
+  
+  if (!url) {
+    if (import.meta.env.PROD) {
+      console.warn('⚠️ [VITE] VITE_API_URL is missing in Production! Falling back to /api.');
+    }
+    return '/api'; 
+  }
+  
+  url = url.replace(/\/$/, '');
   return url.endsWith('/api') ? url : `${url}/api`;
 };
 

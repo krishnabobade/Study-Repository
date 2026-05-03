@@ -52,14 +52,16 @@ app.use(cors({
     if (isVercel || isExplicitlyAllowed || origin.includes('localhost')) {
       callback(null, true);
     } else {
-      console.warn(`[CORS Blocked] Origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      logger.warn(`[CORS Blocked] Origin: ${origin}`);
+      callback(new Error(`CORS Error: Origin ${origin} not allowed`));
     }
   }, 
   credentials: true 
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(mongoSanitize());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', { stream: logger.stream }));
 
 // Global API Rate limiting
