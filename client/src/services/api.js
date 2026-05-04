@@ -1,9 +1,13 @@
 import axios from 'axios'
 
 const getBaseURL = () => {
-  let url = import.meta.env.VITE_API_URL;
+  // Hardcoded for production stability
+  if (import.meta.env.PROD) {
+    return 'https://studyrepository.onrender.com/api';
+  }
   
-  if (!url) {
+  let url = import.meta.env.VITE_API_URL;
+
     if (import.meta.env.PROD) {
       console.warn('⚠️ [VITE] VITE_API_URL is missing in Production! Falling back to /api.');
     }
