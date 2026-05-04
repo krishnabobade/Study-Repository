@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const getBaseURL = () => {
-  return '/api';
+  return 'https://studyrepository.onrender.com/api';
 };
 
 const api = axios.create({
