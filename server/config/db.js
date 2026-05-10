@@ -5,10 +5,15 @@ const connectDB = async () => {
   const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/studyrepo';
   
   try {
-    const conn = await mongoose.connect(MONGO_URI, {
-      // These options are generally default in mongoose 6+, but good practice to explicitly state for pooling
+    const MONGO_URI_CLEAN = MONGO_URI.trim();
+    
+    // Enable Mongoose debugging to troubleshoot connection issues
+    mongoose.set('debug', true);
+
+    const conn = await mongoose.connect(MONGO_URI_CLEAN, {
       maxPoolSize: 50,
       wtimeoutMS: 2500,
+      serverSelectionTimeoutMS: 60000,
     });
     
     logger.info(`✅ MongoDB Connected: ${conn.connection.host}`);

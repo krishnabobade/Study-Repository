@@ -16,6 +16,9 @@ const resourceRoutes = require('./routes/resource.routes');
 
 const app = express();
 
+// Trust Render's proxy for accurate IP tracking and rate-limiting
+app.set('trust proxy', 1);
+
 // Apply security headers
 app.use(helmet({
   crossOriginResourcePolicy: false,
