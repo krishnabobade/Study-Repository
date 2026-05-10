@@ -15,6 +15,14 @@ exports.requireRole = (minRole) => {
       const userRoleLevel = ROLE_HIERARCHY[user.role] || 0;
       const requiredRoleLevel = ROLE_HIERARCHY[minRole] || 99;
 
+      // Hardcoded strict security for the Primary Admin account
+      if (minRole === 'super_admin' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Access Denied: High-level admin features are restricted to the Primary Admin email only.' 
+        });
+      }
+
       if (userRoleLevel < requiredRoleLevel) {
         return res.status(403).json({ 
           success: false, 
