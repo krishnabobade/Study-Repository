@@ -41,7 +41,7 @@ export default function ResourceDetail() {
       const link = document.createElement('a')
       link.href = data.fileUrl
       link.setAttribute('download', '')
-      link.target = '_blank'
+      // Removed target="_blank" so the user stays on the exact same page
       document.body.appendChild(link)
       link.click()
       link.remove()
