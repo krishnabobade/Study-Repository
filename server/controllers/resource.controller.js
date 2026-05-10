@@ -239,6 +239,22 @@ exports.createResource = async (req, res) => {
 
     await User.findByIdAndUpdate(uploadedBy, { $inc: { totalUploads: 1 } });
 
+    // Notify relevant users (classmates in the same course and semester)
+    const notificationController = require('./notification.controller');
+    const classmates = await User.find({ course, semester, _id: { $ne: uploadedBy } }).select('_id');
+    const uploader = await User.findById(uploadedBy).select('name');
+    
+    // Fire and forget notifications
+    classmates.forEach(classmate => {
+      notificationController.createNotification(
+        classmate._id,
+        `${uploader ? uploader.name : 'A classmate'} uploaded new material: "${title}"`,
+        'upload',
+        uploadedBy,
+        resource._id
+      ).catch(err => console.error(err));
+    });
+
     res.status(201).json({ success: true, message: 'Resource created safely', resource });
   } catch (err) {
     console.error('Upload Error:', err);
@@ -274,6 +290,18 @@ exports.downloadResource = async (req, res) => {
     // Credit the uploader for the download
     if (resource.uploadedBy) {
       await User.findByIdAndUpdate(resource.uploadedBy, { $inc: { totalDownloads: 1 } });
+      
+      // Notify uploader about the download if it's someone else
+      if (req.user && req.user.id !== resource.uploadedBy.toString()) {
+        const notificationController = require('./notification.controller');
+        notificationController.createNotification(
+          resource.uploadedBy,
+          `${req.user.name || 'Someone'} downloaded your resource: "${resource.title}"`,
+          'download',
+          req.user.id,
+          resource._id
+        ).catch(err => console.error(err));
+      }
     }
 
     let downloadUrl = resource.fileUrl;
@@ -351,14 +379,18 @@ exports.interactResource = async (req, res) => {
         if (likeDiff > 0) {
           await notificationController.createNotification(
             resource.uploadedBy,
-            `Someone liked your upload: "${resource.title}"`,
-            'info'
+            `${req.user.name || 'Someone'} liked your upload: "${resource.title}"`,
+            'like',
+            req.user.id,
+            resource._id
           );
         } else if (dislikeDiff > 0) {
           await notificationController.createNotification(
             resource.uploadedBy,
-            `Someone disliked your upload: "${resource.title}"`,
-            'alert'
+            `${req.user.name || 'Someone'} disliked your upload: "${resource.title}"`,
+            'alert',
+            req.user.id,
+            resource._id
           );
         }
       }
@@ -396,7 +428,7 @@ exports.deleteResource = async (req, res) => {
       await cloudinary.uploader.destroy(resource.filePublicId, { resource_type: resource.fileType === 'pdf' || resource.fileType === 'doc' || resource.fileType === 'ppt' || resource.fileType === 'other' ? 'raw' : 'image' });
     }
 
-    // Generate Moderation Audit Trail
+    // Generate Moderation Audit Trail and Notify Uploader
     if (!isOwner) {
        const AuditLog = require('../models/AuditLog');
        await AuditLog.create({
@@ -406,6 +438,15 @@ exports.deleteResource = async (req, res) => {
           targetName: resource.title,
           details: `${req.user.role.toUpperCase()} permanently deleted study material belonging to user [${resource.uploadedBy}].`
        });
+
+       const notificationController = require('./notification.controller');
+       await notificationController.createNotification(
+         resource.uploadedBy,
+         `An admin removed your resource: "${resource.title}" due to moderation policies.`,
+         'admin',
+         req.user.id,
+         null
+       );
     }
 
     await Resource.findByIdAndDelete(req.params.id);
@@ -467,8 +508,10 @@ exports.addComment = async (req, res) => {
     if (resource.uploadedBy.toString() !== userId) {
       await notificationController.createNotification(
         resource.uploadedBy,
-        `${populated.user.name} rated your resource "${resource.title}" with ${rating} stars`,
-        'activity'
+        `${populated.user.name} rated/commented on your resource "${resource.title}" with ${rating} stars`,
+        'rating',
+        userId,
+        resourceId
       );
     }
 
