@@ -315,8 +315,8 @@ exports.downloadResource = async (req, res) => {
       const originalFileName = resource.originalName || resource.title;
       const parts = downloadUrl.split('/upload/');
       if (parts.length === 2) {
-        // Strip out any commas or special characters that might break cloudinary URL parsing
-        const safeName = encodeURIComponent(originalFileName.replace(/[,/]/g, '_'));
+        // Strip out spaces, commas, and special characters. Cloudinary transformation parser throws 400 if it sees % signs or invalid chars.
+        const safeName = originalFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
         downloadUrl = `${parts[0]}/upload/fl_attachment:${safeName}/${parts[1]}`;
       }
     }
