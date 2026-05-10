@@ -45,14 +45,12 @@ const logger = winston.createLogger({
   ],
 });
 
-// If we're not in production then log to the `console` with custom format
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: consoleFormat,
-    })
-  );
-}
+// Always log to console in production for cloud platforms like Render/Heroku
+logger.add(
+  new winston.transports.Console({
+    format: consoleFormat,
+  })
+);
 
 // Add stream for Morgan integration
 logger.stream = {

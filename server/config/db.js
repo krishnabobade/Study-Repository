@@ -24,7 +24,7 @@ const connectDB = async () => {
 
   } catch (error) {
     logger.error('❌ MongoDB Initial Connection Error:', error);
-    process.exit(1);
+    // Removed process.exit(1) to allow Render to keep the service alive while retrying
   }
 };
 
