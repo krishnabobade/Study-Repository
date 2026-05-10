@@ -139,6 +139,18 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
+    // Strict Primary Admin check: Prevent any other email from logging in as an Admin
+    if (user.role === 'super_admin' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
+      await AuditLog.create({
+        action: 'SECURITY_VIOLATION',
+        performedBy: user._id,
+        targetId: user._id.toString(),
+        targetName: user.email,
+        details: `CRITICAL: Unauthorized admin login attempt blocked for email: ${user.email} from IP: ${req.ip}`
+      });
+      return res.status(403).json({ success: false, message: 'Access Denied: This administrative account is locked to the primary email only.' });
+    }
+
     if (!(await user.comparePassword(password))) {
       await AuditLog.create({
         action: 'FAILED_LOGIN_ATTEMPT',
