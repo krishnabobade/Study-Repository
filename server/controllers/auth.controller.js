@@ -139,8 +139,8 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    // Strict Primary Admin check: Prevent any other email from logging in as an Admin
-    if (user.role === 'super_admin' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
+    // Strict Primary Admin check: Prevent any other email from logging in as ANY type of Admin
+    if (user.role !== 'student' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
       await AuditLog.create({
         action: 'SECURITY_VIOLATION',
         performedBy: user._id,

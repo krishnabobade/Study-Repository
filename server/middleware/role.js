@@ -16,7 +16,7 @@ exports.requireRole = (minRole) => {
       const requiredRoleLevel = ROLE_HIERARCHY[minRole] || 99;
 
       // Hardcoded strict security for the Primary Admin account
-      if (minRole === 'super_admin' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
+      if (minRole !== 'student' && user.email !== 'krishna.bobade@mitwpu.edu.in') {
         return res.status(403).json({ 
           success: false, 
           message: 'Access Denied: High-level admin features are restricted to the Primary Admin email only.' 
