@@ -231,6 +231,7 @@ exports.createResource = async (req, res) => {
     const resource = await Resource.create({
       title, description, subject, course, semester: Number(semester), category,
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      originalName: req.file.originalname,
       fileUrl, filePublicId, fileType, fileSize: req.file.size, uploadedBy,
       fileHash, documentId,
       autoTags: [...new Set(autoTags)], aiSummary,
@@ -306,9 +307,18 @@ exports.downloadResource = async (req, res) => {
 
     let downloadUrl = resource.fileUrl;
 
-    // Generate secure pre-signed URL for S3 objects
+    // Generate secure pre-signed URL for S3 objects or Cloudinary attachment URLs
     if (resource.fileUrl.startsWith('s3://')) {
-      downloadUrl = await getPresignedDownloadUrl(resource.filePublicId);
+      downloadUrl = await getPresignedDownloadUrl(resource.filePublicId, 3600, resource.originalName || resource.title);
+    } else if (resource.fileUrl.includes('cloudinary.com')) {
+      // Inject Cloudinary fl_attachment flag to force exact filename download
+      const originalFileName = resource.originalName || resource.title;
+      const parts = downloadUrl.split('/upload/');
+      if (parts.length === 2) {
+        // Strip out any commas or special characters that might break cloudinary URL parsing
+        const safeName = encodeURIComponent(originalFileName.replace(/[,/]/g, '_'));
+        downloadUrl = `${parts[0]}/upload/fl_attachment:${safeName}/${parts[1]}`;
+      }
     }
 
     res.json({ success: true, fileUrl: downloadUrl });
@@ -583,6 +593,7 @@ exports.updateResourceVersion = async (req, res) => {
     resource.fileUrl = cloudinaryResult.secure_url;
     resource.filePublicId = cloudinaryResult.public_id;
     resource.fileHash = newHash;
+    resource.originalName = req.file.originalname;
     resource.version += 1;
 
     await resource.save();

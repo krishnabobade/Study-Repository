@@ -36,7 +36,15 @@ export default function ResourceDetail() {
   const handleDownload = async () => {
     try {
       const { data } = await api.post(`/resources/${id}/download`)
-      window.open(data.fileUrl, '_blank')
+      // Create hidden link to ensure smooth download without popup blockers
+      const link = document.createElement('a');
+      link.href = data.fileUrl;
+      // We also set the download attribute as a fallback, though the backend forces it via headers
+      link.download = resource.originalName || resource.title;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       setResource(r => ({ ...r, downloads: r.downloads + 1 }))
     } catch { toast.error('Download failed') }
   }

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const resourceSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, default: '' },
+  originalName: { type: String, required: true },
   fileUrl: { type: String, required: true },
   filePublicId: { type: String, required: true },
   fileType: { type: String, enum: ['pdf', 'doc', 'ppt', 'image', 'video', 'other'], required: true },

@@ -43,14 +43,21 @@ exports.uploadToS3 = async (fileBuffer, fileName, mimeType) => {
  * Generates a pre-signed URL for secure, temporary download access
  * @param {string} fileKey - The S3 object key
  * @param {number} expiresIn - Expiration time in seconds (default: 1 hour)
+ * @param {string} originalName - The original filename to force download
  * @returns {Promise<string>} Pre-signed URL
  */
-exports.getPresignedDownloadUrl = async (fileKey, expiresIn = 3600) => {
+exports.getPresignedDownloadUrl = async (fileKey, expiresIn = 3600, originalName = null) => {
   try {
-    const command = new GetObjectCommand({
+    const params = {
       Bucket: BUCKET_NAME,
       Key: fileKey,
-    });
+    };
+    
+    if (originalName) {
+      params.ResponseContentDisposition = `attachment; filename="${encodeURIComponent(originalName)}"`;
+    }
+
+    const command = new GetObjectCommand(params);
 
     // Create a presigned URL that expires in `expiresIn` seconds
     const url = await getSignedUrl(s3Client, command, { expiresIn });

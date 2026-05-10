@@ -32,10 +32,15 @@ export default function MyFiles() {
     finally { setDeleting(null) }
   }
 
-  const handleDownload = async (id, fileUrl) => {
+  const handleDownload = async (id, resource) => {
     try {
-      await api.post(`/resources/${id}/download`)
-      window.open(fileUrl, '_blank')
+      const { data } = await api.post(`/resources/${id}/download`)
+      const link = document.createElement('a');
+      link.href = data.fileUrl;
+      link.download = resource.originalName || resource.title;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch { toast.error('Download failed') }
   }
 
@@ -121,7 +126,7 @@ export default function MyFiles() {
                     title="Open External">
                     <ExternalLink size={14} />
                   </a>
-                  <button onClick={() => handleDownload(r._id, r.fileUrl)}
+                  <button onClick={() => handleDownload(r._id, r)}
                     className="p-2 rounded-lg hover:bg-panel text-text-muted hover:text-ink-400 transition-colors">
                     <Download size={14} />
                   </button>

@@ -14,7 +14,12 @@ export default function ResourceCard({ resource, compact = false }) {
     if (e) e.preventDefault()
     try {
       const { data } = await api.post(`/resources/${resource._id}/download`)
-      window.open(data.fileUrl, '_blank')
+      const link = document.createElement('a');
+      link.href = data.fileUrl;
+      link.download = resource.originalName || resource.title;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       setLocalDownloads(d => d + 1)
     } catch {
       toast.error('Download failed')
