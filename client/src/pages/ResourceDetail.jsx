@@ -35,20 +35,29 @@ export default function ResourceDetail() {
 
   const handleDownload = async () => {
     if (!user) return toast.error('You must be logged in to download files.')
+    
+    const toastId = toast.loading('Preparing download...')
+    
     try {
       const { data } = await api.post(`/resources/${id}/download`)
-      // Use a hidden anchor tag to trigger download and bypass popup blockers
-      const link = document.createElement('a')
-      link.href = data.fileUrl
-      link.setAttribute('download', '')
-      // Removed target="_blank" so the user stays on the exact same page
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
+      
+      // Use a hidden iframe to trigger the download. 
+      // Because the backend adds fl_attachment, the browser will save the file
+      // instead of navigating or throwing CORS errors.
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = data.fileUrl
+      document.body.appendChild(iframe)
+      
+      // Clean up the iframe after a short delay
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 5000)
       
       setResource(r => ({ ...r, downloads: r.downloads + 1 }))
+      toast.success('Download started!', { id: toastId })
     } catch (err) { 
-      toast.error(err.response?.data?.message || 'Download failed. Please try again.') 
+      toast.error(err.response?.data?.message || 'Download failed. Please try again.', { id: toastId }) 
     }
   }
 
