@@ -33,30 +33,22 @@ export default function ResourceDetail() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const handleDownload = async () => {
-    if (isDownloading) return;
-    setIsDownloading(true);
-    const toastId = toast.loading('Preparing secure download...');
+    if (!user) return toast.error('You must be logged in to download files.')
     try {
       const { data } = await api.post(`/resources/${id}/download`)
-      // Create hidden link to ensure smooth download without popup blockers
-      const link = document.createElement('a');
-      link.href = data.fileUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.download = resource.originalName || resource.title;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Use a hidden anchor tag to trigger download and bypass popup blockers
+      const link = document.createElement('a')
+      link.href = data.fileUrl
+      link.setAttribute('download', '')
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
       
       setResource(r => ({ ...r, downloads: r.downloads + 1 }))
-      toast.success('Download started securely', { id: toastId });
-    } catch { 
-      toast.error('Download failed or server timeout', { id: toastId });
-    } finally {
-      setIsDownloading(false);
+    } catch (err) { 
+      toast.error(err.response?.data?.message || 'Download failed. Please try again.') 
     }
   }
 
@@ -209,10 +201,9 @@ export default function ResourceDetail() {
 
         {/* Actions */}
         <div className="flex gap-3 mt-5">
-          <button onClick={handleDownload} disabled={isDownloading}
-            className={`btn-primary flex-1 justify-center py-3 ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-            {isDownloading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={16} />}
-            {isDownloading ? 'Preparing...' : 'Download'}
+          <button onClick={handleDownload}
+            className="btn-primary flex-1 justify-center py-3">
+            <Download size={16} /> Download
           </button>
           
           {(user?.role === 'teacher' || user?.role === 'admin' || user?._id === resource.uploadedBy?._id) && (

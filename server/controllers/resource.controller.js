@@ -231,7 +231,6 @@ exports.createResource = async (req, res) => {
     const resource = await Resource.create({
       title, description, subject, course, semester: Number(semester), category,
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      originalName: req.file.originalname,
       fileUrl, filePublicId, fileType, fileSize: req.file.size, uploadedBy,
       fileHash, documentId,
       autoTags: [...new Set(autoTags)], aiSummary,
@@ -239,22 +238,6 @@ exports.createResource = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(uploadedBy, { $inc: { totalUploads: 1 } });
-
-    // Notify relevant users (classmates in the same course and semester)
-    const notificationController = require('./notification.controller');
-    const classmates = await User.find({ course, semester, _id: { $ne: uploadedBy } }).select('_id');
-    const uploader = await User.findById(uploadedBy).select('name');
-    
-    // Fire and forget notifications
-    classmates.forEach(classmate => {
-      notificationController.createNotification(
-        classmate._id,
-        `${uploader ? uploader.name : 'A classmate'} uploaded new material: "${title}"`,
-        'upload',
-        uploadedBy,
-        resource._id
-      ).catch(err => console.error(err));
-    });
 
     res.status(201).json({ success: true, message: 'Resource created safely', resource });
   } catch (err) {
@@ -291,33 +274,18 @@ exports.downloadResource = async (req, res) => {
     // Credit the uploader for the download
     if (resource.uploadedBy) {
       await User.findByIdAndUpdate(resource.uploadedBy, { $inc: { totalDownloads: 1 } });
-      
-      // Notify uploader about the download if it's someone else
-      if (req.user && req.user.id !== resource.uploadedBy.toString()) {
-        const notificationController = require('./notification.controller');
-        notificationController.createNotification(
-          resource.uploadedBy,
-          `${req.user.name || 'Someone'} downloaded your resource: "${resource.title}"`,
-          'download',
-          req.user.id,
-          resource._id
-        ).catch(err => console.error(err));
-      }
     }
 
     let downloadUrl = resource.fileUrl;
 
-    // Generate secure pre-signed URL for S3 objects or Cloudinary attachment URLs
+    // Generate secure pre-signed URL for S3 objects
     if (resource.fileUrl.startsWith('s3://')) {
-      downloadUrl = await getPresignedDownloadUrl(resource.filePublicId, 3600, resource.originalName || resource.title);
+      downloadUrl = await getPresignedDownloadUrl(resource.filePublicId);
     } else if (resource.fileUrl.includes('cloudinary.com')) {
-      // Inject Cloudinary fl_attachment flag to force exact filename download
-      const originalFileName = resource.originalName || resource.title;
-      const parts = downloadUrl.split('/upload/');
-      if (parts.length === 2) {
-        // Strip out spaces, commas, and special characters. Cloudinary transformation parser throws 400 if it sees % signs or invalid chars.
-        const safeName = originalFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-        downloadUrl = `${parts[0]}/upload/fl_attachment:${safeName}/${parts[1]}`;
+      // Add fl_attachment to force direct download instead of opening in browser
+      const urlParts = resource.fileUrl.split('/upload/');
+      if (urlParts.length === 2) {
+        downloadUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
       }
     }
 
@@ -389,18 +357,14 @@ exports.interactResource = async (req, res) => {
         if (likeDiff > 0) {
           await notificationController.createNotification(
             resource.uploadedBy,
-            `${req.user.name || 'Someone'} liked your upload: "${resource.title}"`,
-            'like',
-            req.user.id,
-            resource._id
+            `Someone liked your upload: "${resource.title}"`,
+            'info'
           );
         } else if (dislikeDiff > 0) {
           await notificationController.createNotification(
             resource.uploadedBy,
-            `${req.user.name || 'Someone'} disliked your upload: "${resource.title}"`,
-            'alert',
-            req.user.id,
-            resource._id
+            `Someone disliked your upload: "${resource.title}"`,
+            'alert'
           );
         }
       }
@@ -438,7 +402,7 @@ exports.deleteResource = async (req, res) => {
       await cloudinary.uploader.destroy(resource.filePublicId, { resource_type: resource.fileType === 'pdf' || resource.fileType === 'doc' || resource.fileType === 'ppt' || resource.fileType === 'other' ? 'raw' : 'image' });
     }
 
-    // Generate Moderation Audit Trail and Notify Uploader
+    // Generate Moderation Audit Trail
     if (!isOwner) {
        const AuditLog = require('../models/AuditLog');
        await AuditLog.create({
@@ -448,15 +412,6 @@ exports.deleteResource = async (req, res) => {
           targetName: resource.title,
           details: `${req.user.role.toUpperCase()} permanently deleted study material belonging to user [${resource.uploadedBy}].`
        });
-
-       const notificationController = require('./notification.controller');
-       await notificationController.createNotification(
-         resource.uploadedBy,
-         `An admin removed your resource: "${resource.title}" due to moderation policies.`,
-         'admin',
-         req.user.id,
-         null
-       );
     }
 
     await Resource.findByIdAndDelete(req.params.id);
@@ -518,10 +473,8 @@ exports.addComment = async (req, res) => {
     if (resource.uploadedBy.toString() !== userId) {
       await notificationController.createNotification(
         resource.uploadedBy,
-        `${populated.user.name} rated/commented on your resource "${resource.title}" with ${rating} stars`,
-        'rating',
-        userId,
-        resourceId
+        `${populated.user.name} rated your resource "${resource.title}" with ${rating} stars`,
+        'activity'
       );
     }
 
@@ -593,7 +546,6 @@ exports.updateResourceVersion = async (req, res) => {
     resource.fileUrl = cloudinaryResult.secure_url;
     resource.filePublicId = cloudinaryResult.public_id;
     resource.fileHash = newHash;
-    resource.originalName = req.file.originalname;
     resource.version += 1;
 
     await resource.save();

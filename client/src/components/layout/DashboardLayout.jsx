@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Search, Upload, FolderOpen, User,
   Bell, LogOut, Menu, X, BookOpen, ChevronRight, GraduationCap, MessageSquare,
-  Users, FileText, Shield, Heart, Download, Star, AlertTriangle, Trash2
+  Users, FileText, Shield
 } from 'lucide-react'
 import useAuthStore from '../../store/authStore'
 import api from '../../services/api'
@@ -88,24 +88,6 @@ export default function DashboardLayout() {
     await api.patch('/notifications/mark-all-read')
     setUnread(0)
     setNotifications(n => n.map(x => ({ ...x, read: true })))
-  }
-
-  const clearAll = async () => {
-    await api.delete('/notifications/clear-all')
-    setUnread(0)
-    setNotifications([])
-  }
-
-  const getNotifIcon = (type) => {
-    switch (type) {
-      case 'like': return <Heart size={16} className="text-red-500" />
-      case 'download': return <Download size={16} className="text-blue-500" />
-      case 'upload': return <Upload size={16} className="text-green-500" />
-      case 'rating': case 'comment': return <Star size={16} className="text-yellow-500" />
-      case 'admin': return <Shield size={16} className="text-purple-500" />
-      case 'alert': return <AlertTriangle size={16} className="text-orange-500" />
-      default: return <Bell size={16} className="text-ink-400" />
-    }
   }
 
   const avatar = user?.avatar
@@ -269,34 +251,19 @@ export default function DashboardLayout() {
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-12 w-80 bg-card border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-panel">
-                    <span className="text-sm font-bold text-text-main">Notifications</span>
-                    <div className="flex gap-3">
-                      {unread > 0 && (
-                        <button onClick={markAllRead} className="text-[11px] font-medium text-ink-400 hover:text-ink-300 transition-colors">
-                          Mark all read
-                        </button>
-                      )}
-                      {notifications.length > 0 && (
-                        <button onClick={clearAll} className="text-[11px] font-medium text-text-muted hover:text-red-400 transition-colors flex items-center gap-1">
-                          <Trash2 size={12} /> Clear
-                        </button>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between px-4 py-3 pr-10 border-b border-border">
+                    <span className="text-sm font-semibold text-text-main">Notifications</span>
+                    {unread > 0 && (
+                      <button onClick={markAllRead} className="text-xs text-ink-400 hover:text-ink-300">
+                        Mark all read
+                      </button>
+                    )}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0
-                      ? <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-                          <Bell size={32} className="text-text-muted/20 mb-3" />
-                          <p className="text-text-main/70 text-sm font-medium">All caught up!</p>
-                          <p className="text-text-muted/60 text-xs mt-1">Check back later for new notifications.</p>
-                        </div>
+                      ? <p className="text-center text-text-muted/60 text-sm py-8">No notifications</p>
                       : notifications.map(n => (
-                        <motion.div 
-                          key={n._id}
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                        <div key={n._id}
                           onClick={async () => {
                             if (!n.read) {
                               await api.patch(`/notifications/${n._id}/read`)
@@ -304,31 +271,10 @@ export default function DashboardLayout() {
                               setUnread(u => Math.max(0, u - 1))
                             }
                           }}
-                          className={`px-4 py-3 border-b border-border/50 cursor-pointer transition-all hover:bg-panel flex gap-3 ${!n.read ? 'bg-ink-500/10' : ''}`}>
-                          
-                          <div className="shrink-0 mt-0.5">
-                            {n.sender && n.sender.avatar ? (
-                               <img src={n.sender.avatar} className="w-8 h-8 rounded-full object-cover ring-2 ring-panel" alt="sender" />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center ring-2 ring-panel shadow-sm">
-                                {getNotifIcon(n.type)}
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm ${!n.read ? 'font-semibold text-text-main' : 'text-text-main/80'}`}>
-                              {n.message}
-                            </p>
-                            <p className="text-[10px] text-text-muted/60 mt-1 uppercase font-bold tracking-wider">
-                              {new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {new Date(n.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                          
-                          {!n.read && (
-                            <div className="shrink-0 w-2 h-2 rounded-full bg-ink-500 mt-2" />
-                          )}
-                        </motion.div>
+                          className={`px-4 py-3 border-b border-border/50 cursor-pointer hover:bg-card transition-colors ${!n.read ? 'bg-ink-500/5' : ''}`}>
+                          <p className="text-sm text-text-main/80">{n.message}</p>
+                          <p className="text-[10px] text-text-muted/50 mt-1 uppercase font-bold tracking-wider">{new Date(n.createdAt).toLocaleTimeString()} • {new Date(n.createdAt).toLocaleDateString()}</p>
+                        </div>
                       ))
                     }
                   </div>

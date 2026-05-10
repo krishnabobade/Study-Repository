@@ -10,29 +10,14 @@ export default function ResourceCard({ resource, compact = false }) {
   const [localViews, setLocalViews] = useState(resource.views)
   const [localDownloads, setLocalDownloads] = useState(resource.downloads)
 
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const handleDownload = async (e) => {
     if (e) e.preventDefault()
-    if (isDownloading) return;
-    setIsDownloading(true);
-    const toastId = toast.loading('Starting download...');
     try {
       const { data } = await api.post(`/resources/${resource._id}/download`)
-      const link = document.createElement('a');
-      link.href = data.fileUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.download = resource.originalName || resource.title;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      window.open(data.fileUrl, '_blank')
       setLocalDownloads(d => d + 1)
-      toast.success('Download ready', { id: toastId });
     } catch {
-      toast.error('Download failed', { id: toastId })
-    } finally {
-      setIsDownloading(false);
+      toast.error('Download failed')
     }
   }
 
@@ -99,11 +84,11 @@ export default function ResourceCard({ resource, compact = false }) {
       </Link>
 
       <div className="mt-3">
-        <button onClick={handleDownload} disabled={isDownloading}
-          className={`w-full py-2 rounded-xl border flex items-center justify-center gap-1.5 transition-all duration-200 text-xs font-medium
-            ${isDownloading ? 'bg-ink-500/5 text-ink-300/50 border-ink-500/10 cursor-not-allowed' : 'bg-ink-500/10 hover:bg-ink-500/20 text-ink-300 border-ink-500/20 hover:border-ink-500/40'}`}>
-          {isDownloading ? <span className="w-3.5 h-3.5 border-2 border-ink-400/30 border-t-ink-400 rounded-full animate-spin" /> : <Download size={13} />}
-          {isDownloading ? 'Downloading...' : 'Download'}
+        <button onClick={handleDownload}
+          className="w-full py-2 rounded-xl bg-ink-500/10 hover:bg-ink-500/20 border border-ink-500/20 hover:border-ink-500/40
+                     text-xs font-medium text-ink-300 flex items-center justify-center gap-1.5 transition-all duration-200">
+          <Download size={13} />
+          Download
         </button>
       </div>
 

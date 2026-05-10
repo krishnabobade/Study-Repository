@@ -5,7 +5,6 @@ const auth = require('../middleware/auth');
 
 router.get('/', auth.protect, notificationController.getNotifications);
 router.patch('/mark-all-read', auth.protect, notificationController.markAllRead);
-router.delete('/clear-all', auth.protect, notificationController.clearAll);
 router.patch('/:id/read', auth.protect, notificationController.markAsRead);
 
 module.exports = router;
