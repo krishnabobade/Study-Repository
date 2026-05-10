@@ -33,20 +33,31 @@ export default function ResourceDetail() {
       .finally(() => setLoading(false))
   }, [id])
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const handleDownload = async () => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    const toastId = toast.loading('Preparing secure download...');
     try {
       const { data } = await api.post(`/resources/${id}/download`)
       // Create hidden link to ensure smooth download without popup blockers
       const link = document.createElement('a');
       link.href = data.fileUrl;
-      // We also set the download attribute as a fallback, though the backend forces it via headers
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.download = resource.originalName || resource.title;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
       setResource(r => ({ ...r, downloads: r.downloads + 1 }))
-    } catch { toast.error('Download failed') }
+      toast.success('Download started securely', { id: toastId });
+    } catch { 
+      toast.error('Download failed or server timeout', { id: toastId });
+    } finally {
+      setIsDownloading(false);
+    }
   }
 
   const handleInteract = async (action) => {
@@ -198,9 +209,10 @@ export default function ResourceDetail() {
 
         {/* Actions */}
         <div className="flex gap-3 mt-5">
-          <button onClick={handleDownload}
-            className="btn-primary flex-1 justify-center py-3">
-            <Download size={16} /> Download
+          <button onClick={handleDownload} disabled={isDownloading}
+            className={`btn-primary flex-1 justify-center py-3 ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}>
+            {isDownloading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={16} />}
+            {isDownloading ? 'Preparing...' : 'Download'}
           </button>
           
           {(user?.role === 'teacher' || user?.role === 'admin' || user?._id === resource.uploadedBy?._id) && (

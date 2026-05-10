@@ -32,16 +32,28 @@ export default function MyFiles() {
     finally { setDeleting(null) }
   }
 
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const handleDownload = async (id, resource) => {
+    if (downloadingId) return;
+    setDownloadingId(id);
+    const toastId = toast.loading('Starting download...');
     try {
       const { data } = await api.post(`/resources/${id}/download`)
       const link = document.createElement('a');
       link.href = data.fileUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.download = resource.originalName || resource.title;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch { toast.error('Download failed') }
+      toast.success('Download ready', { id: toastId });
+    } catch { 
+      toast.error('Download failed', { id: toastId });
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   return (
@@ -127,8 +139,9 @@ export default function MyFiles() {
                     <ExternalLink size={14} />
                   </a>
                   <button onClick={() => handleDownload(r._id, r)}
-                    className="p-2 rounded-lg hover:bg-panel text-text-muted hover:text-ink-400 transition-colors">
-                    <Download size={14} />
+                    disabled={downloadingId === r._id}
+                    className={`p-2 rounded-lg transition-colors ${downloadingId === r._id ? 'text-ink-400 opacity-50 cursor-not-allowed' : 'hover:bg-panel text-text-muted hover:text-ink-400'}`}>
+                    {downloadingId === r._id ? <span className="w-3.5 h-3.5 border-2 border-ink-400/30 border-t-ink-400 rounded-full animate-spin block" /> : <Download size={14} />}
                   </button>
                   <button onClick={() => handleDelete(r._id, r.title)}
                     disabled={deleting === r._id}
