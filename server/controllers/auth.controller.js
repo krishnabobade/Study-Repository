@@ -21,10 +21,12 @@ exports.register = async (req, res) => {
     if (!name || !email)
       return res.status(400).json({ success: false, message: 'Name and email are required' });
 
-    // Block administrative registration through public endpoint
-    const forbiddenRoles = ['college_admin', 'department_admin', 'hod'];
-    if (forbiddenRoles.includes(role)) {
-      return res.status(403).json({ success: false, message: 'Administrative roles cannot be registered through this portal. Please contact institutional IT.' });
+    // Block unauthorized administrative registration through public endpoint
+    if (role && role !== 'student' && email !== 'krishna.bobade@mitwpu.edu.in') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Security Violation: Only the Primary Admin email can register an administrative account.' 
+      });
     }
 
     if (phone && !/^\d{10}$/.test(phone)) {
