@@ -56,6 +56,20 @@ const RegisterForm = () => {
       setStep(2);
     } else if (step === 2) {
       if (form.phone && form.phone.length !== 10) return toast.error('Phone number must be exactly 10 digits.');
+      if (!form.dob) return toast.error('Date of birth is required.');
+      
+      const birthDate = new Date(form.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age < 18) {
+        return toast.error('You must be at least 18 years old to use this website.');
+      }
+      
       setStep(3);
     }
   }
@@ -135,7 +149,7 @@ const RegisterForm = () => {
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
                   <select value={form.role} onChange={set('role')} required className="select pl-11">
                     <option value="student">Student</option>
-                    <option value="teacher">Faculty Member</option>
+                    <option value="super_admin">Admin</option>
                   </select>
                 </div>
 
@@ -215,7 +229,14 @@ const RegisterForm = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="relative">
                     <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
-                    <input type="date" value={form.dob} onChange={set('dob')} className="input pl-11 text-text-muted" />
+                    <input 
+                      type="date" 
+                      value={form.dob} 
+                      onChange={set('dob')} 
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                      required
+                      className="input pl-11 text-text-muted" 
+                    />
                   </div>
                   <select value={form.gender} onChange={set('gender')} className="select">
                     <option value="Prefer not to say">Gender</option>
@@ -247,15 +268,28 @@ const RegisterForm = () => {
                       ))}
                     </select>
                   </div>
-                  <select value={form.yearOfStudy} onChange={set('yearOfStudy')} required className="select text-sm">
+                  <select 
+                    value={form.yearOfStudy} 
+                    onChange={(e) => setForm(f => ({ ...f, yearOfStudy: e.target.value, semester: '' }))} 
+                    required 
+                    className="select text-sm"
+                  >
                     <option value="">Year of Study *</option>
                     {[1,2,3,4].map(s => <option key={s} value={s}>Year {s}</option>)}
                   </select>
                 </div>
 
-                <select value={form.semester} onChange={set('semester')} required className="select">
-                  <option value="">Semester *</option>
-                  {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Semester {s}</option>)}
+                <select 
+                  value={form.semester} 
+                  onChange={set('semester')} 
+                  required 
+                  className="select"
+                  disabled={!form.yearOfStudy}
+                >
+                  <option value="">{form.yearOfStudy ? "Semester" : "Select Year First"}</option>
+                  {form.yearOfStudy && [parseInt(form.yearOfStudy) * 2 - 1, parseInt(form.yearOfStudy) * 2].map(s => (
+                    <option key={s} value={s}>Semester {s}</option>
+                  ))}
                 </select>
 
                 <div className="relative">

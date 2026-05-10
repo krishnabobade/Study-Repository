@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Camera, Save, Lock, LogOut } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Camera, Save, Lock, LogOut, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/authStore'
@@ -26,6 +26,7 @@ export default function Profile() {
   const [savingPw, setSavingPw] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '')
   const [avatarFile, setAvatarFile]       = useState(null)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const set  = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
   const setPw = k => e => setPasswordForm(f => ({ ...f, [k]: e.target.value }))
@@ -39,6 +40,21 @@ export default function Profile() {
 
   const handleSave = async e => {
     e.preventDefault()
+    
+    if (form.dob) {
+      const birthDate = new Date(form.dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age < 18) {
+        return toast.error('You must be at least 18 years old.');
+      }
+    }
+
     setSaving(true)
     try {
       const fd = new FormData()
@@ -133,7 +149,13 @@ export default function Profile() {
           
           <div className="grid grid-cols-2 gap-3">
             <input type="tel" className="input" placeholder="Phone Number" value={form.phone} onChange={set('phone')} maxLength={10} />
-            <input type="date" className="input text-text-muted" value={form.dob} onChange={set('dob')} />
+            <input 
+              type="date" 
+              className="input text-text-muted" 
+              value={form.dob} 
+              onChange={set('dob')}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+            />
           </div>
 
           {user?.role !== 'super_admin' ? (
@@ -145,7 +167,11 @@ export default function Profile() {
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
-                <select className="select" value={form.yearOfStudy} onChange={set('yearOfStudy')}>
+                <select 
+                  className="select" 
+                  value={form.yearOfStudy} 
+                  onChange={(e) => setForm(f => ({ ...f, yearOfStudy: e.target.value, semester: '' }))}
+                >
                   <option value="">Year of Study</option>
                   {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
                 </select>
@@ -160,9 +186,16 @@ export default function Profile() {
                     </optgroup>
                   ))}
                 </select>
-                <select className="select" value={form.semester} onChange={set('semester')}>
-                  <option value="">Semester</option>
-                  {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                <select 
+                  className="select" 
+                  value={form.semester} 
+                  onChange={set('semester')}
+                  disabled={!form.yearOfStudy}
+                >
+                  <option value="">{form.yearOfStudy ? "Semester" : "Select Year First"}</option>
+                  {form.yearOfStudy && [parseInt(form.yearOfStudy) * 2 - 1, parseInt(form.yearOfStudy) * 2].map(s => (
+                    <option key={s} value={s}>Sem {s}</option>
+                  ))}
                 </select>
               </div>
             </>
@@ -206,11 +239,50 @@ export default function Profile() {
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.16 }}
         className="card p-5 border-red-500/20">
         <h2 className="font-semibold text-red-400 mb-3 text-sm">Danger Zone</h2>
-        <button onClick={handleLogout} className="btn-danger">
+        <button onClick={() => setShowLogoutConfirm(true)} className="btn-danger">
           <LogOut size={15} />
           Sign out of all devices
         </button>
       </motion.div>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-panel border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl"
+            >
+              <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                <AlertTriangle className="text-red-500" size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-text-main text-center">Sign Out Everywhere?</h3>
+              <p className="text-sm text-text-muted text-center mt-2 mb-6">
+                Are you sure you want to sign out of all your active sessions? You will need to log in again.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-2.5 bg-panel border border-border text-text-main rounded-xl font-semibold hover:bg-surface transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    handleLogout();
+                  }}
+                  className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+                >
+                  Yes, Sign Out
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

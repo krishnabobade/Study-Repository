@@ -5,7 +5,6 @@ import toast from 'react-hot-toast'
 import api from '../services/api'
 import useAuthStore from '../store/authStore'
 import { MITWPU_SCHOOLS } from '../data/mitwpu'
-import DocumentViewer from '../components/shared/DocumentViewer'
 
 const COURSES   = ['BCA','MCA','B.Sc CS','B.Sc IT','B.Tech CS','B.Tech IT','MBA','Other']
 const CATEGORIES = [
@@ -24,7 +23,6 @@ export default function Upload() {
   const [dragOver, setDragOver] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus]   = useState('idle') // idle | uploading | success | error
-  const [showPreview, setShowPreview] = useState(false)
   const inputRef = useRef()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -129,11 +127,7 @@ export default function Upload() {
                 </div>
                 {status !== 'uploading' && (
                   <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => setShowPreview(true)}
-                      className="p-2 hover:bg-panel rounded-lg text-text-muted hover:text-text-main transition-colors"
-                      title="Preview local file">
-                      <Eye size={16} />
-                    </button>
+
                     <button type="button" onClick={() => { setFile(null); setStatus('idle') }}
                       className="p-2 hover:bg-panel rounded-lg text-text-muted hover:text-text-main transition-colors">
                       <X size={16} />
@@ -189,20 +183,7 @@ export default function Upload() {
         </button>
       </form>
       
-      {showPreview && file && (
-        <DocumentViewer
-          url={URL.createObjectURL(file)}
-          type={file.type.includes('pdf') ? 'pdf' : file.type.includes('image') ? 'image' : file.type.includes('video') ? 'video' : (file.name.endsWith('.doc') || file.name.endsWith('.docx') || file.name.endsWith('.ppt') || file.name.endsWith('.pptx')) ? 'doc' : 'other'}
-          title={file.name}
-          onClose={() => setShowPreview(false)}
-          onDownload={() => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(file);
-            a.download = file.name;
-            a.click();
-          }}
-        />
-      )}
+
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import { useState, memo } from 'react'
+import { useState, memo, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, Book, FileText, GraduationCap, Globe, Code, PenTool, Layout, Box, Server, BookCopy, Monitor, ShieldCheck } from 'lucide-react'
+import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
 
@@ -9,24 +9,31 @@ import AnimatedBackground from '../components/AnimatedBackground'
 import ThemeToggle from '../components/shared/ThemeToggle'
 import SEO from '../components/shared/SEO'
 
-const LoginForm = () => {
-  const [form, setForm] = useState({ email: '', password: '' })
+const LoginForm = memo(() => {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [consentAccepted, setConsentAccepted] = useState(false)
   const [loading, setLoading] = useState(false)
+  
   const { login } = useAuthStore()
   const navigate = useNavigate()
 
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+  const handleEmailChange = useCallback((e) => setEmail(e.target.value), [])
+  const handlePasswordChange = useCallback((e) => setPassword(e.target.value), [])
+  const toggleShowPass = useCallback(() => setShowPass(prev => !prev), [])
+  const handleConsentChange = useCallback((e) => setConsentAccepted(e.target.checked), [])
 
-  const isValidEmail = form.email === '' || form.email.toLowerCase().endsWith('@mitwpu.edu.in')
+  const isValidEmail = useMemo(() => {
+    return email === '' || email.toLowerCase().endsWith('@mitwpu.edu.in')
+  }, [email])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) {
+    if (!email || !password) {
       return toast.error('Please fill in all fields')
     }
-    if (!form.email.toLowerCase().endsWith('@mitwpu.edu.in')) {
+    if (!email.toLowerCase().endsWith('@mitwpu.edu.in')) {
       return toast.error('Only @mitwpu.edu.in email addresses are permitted')
     }
     if (!consentAccepted) {
@@ -35,7 +42,7 @@ const LoginForm = () => {
     
     setLoading(true)
     try {
-      await login(form.email, form.password, consentAccepted)
+      await login(email, password, consentAccepted)
       toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {
@@ -44,7 +51,14 @@ const LoginForm = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [email, password, consentAccepted, login, navigate])
+
+  const handleDisabledSubmit = useCallback((e) => {
+    if (!consentAccepted) {
+      e.preventDefault();
+      toast.error('You must accept Terms & Conditions to continue.');
+    }
+  }, [consentAccepted])
 
   return (
     <motion.div
@@ -65,17 +79,17 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
             <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${!isValidEmail ? 'text-red-400' : 'text-text-muted/30'}`} />
-            <input type="email" placeholder="College email (@mitwpu.edu.in)" value={form.email}
-              onChange={set('email')} required
+            <input type="email" placeholder="College email (@mitwpu.edu.in)" value={email}
+              onChange={handleEmailChange} required
               className={`input pl-11 transition-all ${!isValidEmail ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : ''}`} />
           </div>
 
           <div className="relative">
             <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/30 pointer-events-none" />
-            <input type={showPass ? 'text' : 'password'} placeholder="Password" value={form.password}
-              onChange={set('password')} required
+            <input type={showPass ? 'text' : 'password'} placeholder="Password" value={password}
+              onChange={handlePasswordChange} required
               className="input pl-11 pr-11" />
-            <button type="button" onClick={() => setShowPass(s => !s)}
+            <button type="button" onClick={toggleShowPass}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/40 hover:text-text-main transition-colors">
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -93,7 +107,7 @@ const LoginForm = () => {
                 id="consent"
                 type="checkbox"
                 checked={consentAccepted}
-                onChange={(e) => setConsentAccepted(e.target.checked)}
+                onChange={handleConsentChange}
                 className="w-4 h-4 rounded border-border bg-surface text-ink-500 focus:ring-ink-500/50 cursor-pointer"
               />
             </div>
@@ -106,12 +120,7 @@ const LoginForm = () => {
             type="submit" 
             disabled={loading || !consentAccepted}
             className="btn-primary w-full justify-center py-3 text-base mt-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            onClick={(e) => {
-              if (!consentAccepted) {
-                e.preventDefault();
-                toast.error('You must accept Terms & Conditions to continue.');
-              }
-            }}
+            onClick={handleDisabledSubmit}
           >
             {loading
               ? <span className="w-5 h-5 border-2 border-border border-t-white rounded-full animate-spin" />
@@ -140,9 +149,9 @@ const LoginForm = () => {
       </div>
     </motion.div>
   )
-}
+})
 
-export default function Login() {
+const Login = memo(() => {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
       <SEO title="Login | Study Repository" description="Sign in to your Study Repository account to access premium academic resources." />
@@ -155,8 +164,9 @@ export default function Login() {
         <ThemeToggle />
       </div>
 
-      {/* 3. Extracted Form Container */}
       <LoginForm />
     </div>
   )
-}
+})
+
+export default Login

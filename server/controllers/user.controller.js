@@ -83,11 +83,9 @@ exports.getPublicProfile = async (req, res) => {
 
     // Fetch user's public activity
     let recentActivity = [];
-    if (user.role === 'teacher' || user.role === 'admin') {
-      recentActivity = await Resource.find({ uploadedBy: user._id, isApproved: true })
-        .sort('-createdAt').limit(10)
-        .select('title subject category views downloads createdAt');
-    }
+    recentActivity = await Resource.find({ uploadedBy: user._id, isApproved: true })
+      .sort('-createdAt').limit(10)
+      .select('title subject category views downloads createdAt');
 
     // Check if the current requesting user has already interacted with this profile
     let myInteraction = null;
@@ -174,7 +172,7 @@ exports.interactWithUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try {
-    const isAdmin = ['super_admin', 'college_admin', 'department_admin', 'admin'].includes(req.user.role);
+    const isAdmin = req.user.role === 'super_admin';
     if (!isAdmin) return res.status(403).json({ success: false, message: 'Unauthorized. Admin access required.' });
 
     const targetUserId = req.params.id;

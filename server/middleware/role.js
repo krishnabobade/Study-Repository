@@ -2,10 +2,6 @@ const User = require('../models/User');
 
 const ROLE_HIERARCHY = {
   student: 1,
-  teacher: 2,
-  hod: 3,
-  department_admin: 4,
-  college_admin: 5,
   super_admin: 6
 };
 
@@ -63,8 +59,8 @@ exports.restrictToDepartment = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
-    // super_admin and college_admin can access all departments
-    if (user.role === 'super_admin' || user.role === 'college_admin') return next();
+    // super_admin can access all departments
+    if (user.role === 'super_admin') return next();
 
     // Check if the requested department matches the user's department
     const targetDept = req.params.department || req.body.department;

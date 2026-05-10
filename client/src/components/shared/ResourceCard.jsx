@@ -4,11 +4,9 @@ import { Link } from 'react-router-dom'
 import { FileTypeBadge, CategoryBadge, Stars, formatSize, timeAgo } from './utils'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import DocumentViewer from './DocumentViewer'
 import { useState } from 'react'
 
 export default function ResourceCard({ resource, compact = false }) {
-  const [showPreview, setShowPreview] = useState(false)
   const [localViews, setLocalViews] = useState(resource.views)
   const [localDownloads, setLocalDownloads] = useState(resource.downloads)
 
@@ -23,17 +21,6 @@ export default function ResourceCard({ resource, compact = false }) {
     }
   }
 
-  const handleView = async (e) => {
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-    setShowPreview(true)
-    try {
-      const { data } = await api.post(`/resources/${resource._id}/view`)
-      setLocalViews(data.views)
-    } catch (err) {}
-  }
 
   return (
     <motion.div
@@ -42,13 +29,11 @@ export default function ResourceCard({ resource, compact = false }) {
       <Link to={`/resources/${resource._id}`} className="block">
         <div className="flex items-start gap-3">
           {/* Icon - Clickable for Quick View */}
-          <button 
-            onClick={handleView}
-            className="w-10 h-10 rounded-xl bg-ink-500/15 flex items-center justify-center shrink-0 hover:bg-ink-500/25 transition-colors cursor-pointer z-10 relative"
-            title="Quick View"
+          <div 
+            className="w-10 h-10 rounded-xl bg-ink-500/15 flex items-center justify-center shrink-0 z-10 relative"
           >
             <FileIcon type={resource.fileType} />
-          </button>
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -98,30 +83,15 @@ export default function ResourceCard({ resource, compact = false }) {
         </div>
       </Link>
 
-      <div className="flex gap-2 mt-3">
-        <button onClick={handleView}
-          className="flex-1 py-2 rounded-xl bg-panel hover:bg-panel/80 border border-border
-                     text-xs font-medium text-text-muted flex items-center justify-center gap-1.5 transition-all duration-200">
-          <Eye size={13} />
-          View
-        </button>
+      <div className="mt-3">
         <button onClick={handleDownload}
-          className="flex-1 py-2 rounded-xl bg-ink-500/10 hover:bg-ink-500/20 border border-ink-500/20 hover:border-ink-500/40
+          className="w-full py-2 rounded-xl bg-ink-500/10 hover:bg-ink-500/20 border border-ink-500/20 hover:border-ink-500/40
                      text-xs font-medium text-ink-300 flex items-center justify-center gap-1.5 transition-all duration-200">
           <Download size={13} />
           Download
         </button>
       </div>
 
-      {showPreview && (
-        <DocumentViewer
-          url={resource.fileUrl}
-          type={resource.fileType}
-          title={resource.title}
-          onClose={() => setShowPreview(false)}
-          onDownload={handleDownload}
-        />
-      )}
     </motion.div>
   )
 }

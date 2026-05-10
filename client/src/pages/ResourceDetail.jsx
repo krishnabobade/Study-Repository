@@ -10,7 +10,6 @@ import api from '../services/api'
 import useAuthStore from '../store/authStore'
 import { FileTypeBadge, CategoryBadge, Stars, timeAgo, formatSize } from '../components/shared/utils'
 import { SkeletonTitle, SkeletonText, SkeletonImage } from '../components/shared/Skeleton'
-import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function ResourceDetail() {
   const { id } = useParams()
@@ -22,7 +21,6 @@ export default function ResourceDetail() {
   const [newRating,  setNewRating]  = useState(5)
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -204,17 +202,7 @@ export default function ResourceDetail() {
             </button>
           )}
 
-          <button onClick={async () => {
-            setShowPreview(true);
-            try {
-              const { data } = await api.post(`/resources/${id}/view`);
-              setResource(r => ({ ...r, views: data.views }));
-            } catch (err) {}
-          }}
-            className="btn-ghost border border-border px-4 py-3 text-text-muted hover:text-text-main"
-            title="Preview Document">
-            <Eye size={16} /> Preview
-          </button>
+
 
           <a href={resource.fileUrl} target="_blank" rel="noreferrer"
             className="btn-ghost border border-border px-4 py-3" title="Open External">
@@ -223,15 +211,6 @@ export default function ResourceDetail() {
         </div>
       </motion.div>
 
-      {showPreview && (
-        <DocumentViewer
-          url={resource.fileUrl}
-          type={resource.fileType}
-          title={resource.title}
-          onClose={() => setShowPreview(false)}
-          onDownload={handleDownload}
-        />
-      )}
 
       {/* Comments */}
       <motion.div initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }} className="card p-6">

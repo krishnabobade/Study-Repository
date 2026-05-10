@@ -11,7 +11,7 @@ export default function UserManagement() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [editingUser, setEditingUser] = useState(null);
+
 
   useEffect(() => {
     fetchUsers();
@@ -40,16 +40,7 @@ export default function UserManagement() {
     }
   };
 
-  const handleUpdateRole = async (userId, newRole) => {
-    try {
-      await api.patch(`/admin/users/${userId}`, { role: newRole });
-      setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
-      toast.success('Role updated');
-      setEditingUser(null);
-    } catch (err) {
-      toast.error('Failed to update role');
-    }
-  };
+
 
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -149,12 +140,6 @@ export default function UserManagement() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => setEditingUser(u)}
-                        className="p-2 hover:bg-ink-500/10 text-text-muted hover:text-ink-400 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
                       {u.role !== 'super_admin' && (
                         <button 
                           onClick={() => setConfirmDelete(u)}
@@ -208,47 +193,7 @@ export default function UserManagement() {
         )}
       </AnimatePresence>
 
-      {/* Edit Role Modal */}
-      <AnimatePresence>
-        {editingUser && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-surface/80 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-panel border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-text-main">Change User Role</h3>
-                <button onClick={() => setEditingUser(null)} className="text-text-muted hover:text-text-main">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="space-y-3">
-                {['student', 'teacher', 'college_admin', 'super_admin'].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => handleUpdateRole(editingUser._id, role)}
-                    className={`w-full p-4 rounded-2xl border text-left transition-all ${
-                      editingUser.role === role 
-                        ? 'border-ink-500 bg-ink-500/10 text-ink-400' 
-                        : 'border-border bg-surface hover:bg-panel text-text-main'
-                    }`}
-                  >
-                    <div className="font-bold capitalize">{role.replace('_', ' ')}</div>
-                    <div className="text-xs opacity-60">
-                      {role === 'super_admin' ? 'Full platform control and logging' : 
-                       role === 'college_admin' ? 'Manage resources and standard users' :
-                       role === 'teacher' ? 'Upload materials and manage own content' :
-                       'Standard student access'}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }

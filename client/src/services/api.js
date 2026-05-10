@@ -1,7 +1,10 @@
 import axios from 'axios'
 
 const getBaseURL = () => {
-  return 'https://studyrepository.onrender.com/api';
+  if (import.meta.env.MODE === 'development') {
+    return 'http://localhost:5000/api';
+  }
+  return import.meta.env.VITE_API_URL || 'https://studyrepository.onrender.com/api';
 };
 
 const api = axios.create({

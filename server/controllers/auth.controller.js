@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name and email are required' });
 
     // Block administrative registration through public endpoint
-    const forbiddenRoles = ['super_admin', 'college_admin', 'department_admin', 'hod'];
+    const forbiddenRoles = ['college_admin', 'department_admin', 'hod'];
     if (forbiddenRoles.includes(role)) {
       return res.status(403).json({ success: false, message: 'Administrative roles cannot be registered through this portal. Please contact institutional IT.' });
     }

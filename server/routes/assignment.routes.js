@@ -6,7 +6,7 @@ const upload = require('../middleware/upload');
 
 router.use(protect);
 
-router.post('/', authorize('admin', 'super_admin', 'teacher', 'hod'), assignmentController.createAssignment);
+router.post('/', authorize('super_admin'), assignmentController.createAssignment);
 router.get('/', assignmentController.getAssignments);
 router.post('/:id/submit', upload.single('file'), assignmentController.submitAssignment);
 

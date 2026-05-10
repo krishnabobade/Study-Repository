@@ -226,7 +226,7 @@ exports.createResource = async (req, res) => {
 
     const documentId = `DOC-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
 
-    const isTrustedRole = ['teacher', 'hod', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    const isTrustedRole = req.user.role === 'super_admin';
     
     const resource = await Resource.create({
       title, description, subject, course, semester: Number(semester), category,
@@ -381,10 +381,9 @@ exports.deleteResource = async (req, res) => {
 
     // Validate global role permissions
     const isOwner = resource.uploadedBy.toString() === req.user.id;
-    const isTeacher = req.user.role === 'teacher' || req.user.role === 'hod';
-    const isAdmin = ['admin', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    const isAdmin = req.user.role === 'super_admin';
 
-    if (!isOwner && !isTeacher && !isAdmin) {
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this resource. Insufficient permissions.' });
     }
 
@@ -507,7 +506,7 @@ exports.updateResourceVersion = async (req, res) => {
     const resource = await Resource.findById(id);
     
     if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
-    const isAdmin = ['admin', 'department_admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    const isAdmin = req.user.role === 'super_admin';
     if (resource.uploadedBy.toString() !== req.user.id && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized manually version this document.' });
     }

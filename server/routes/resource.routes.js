@@ -10,7 +10,7 @@ router.get('/trending', resourceController.getTrendingResources);
 router.get('/recommendations', auth.protect, resourceController.getRecommendations);
 router.get('/:id', resourceController.getResource);
 // Apply AI Content scanning right after file is uploaded to memory
-router.post('/', auth.protect, auth.authorize('teacher', 'hod'), upload.single('file'), validateAcademicContent, resourceController.createResource);
+router.post('/', auth.protect, upload.single('file'), validateAcademicContent, resourceController.createResource);
 router.delete('/:id', auth.protect, resourceController.deleteResource);
 router.post('/:id/download', auth.protect, resourceController.downloadResource);
 router.post('/:id/view', auth.protect, resourceController.recordView);

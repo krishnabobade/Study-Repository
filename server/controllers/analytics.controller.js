@@ -5,7 +5,7 @@ let CACHE = { data: null, timestamp: 0 };
 
 exports.getStats = async (req, res) => {
   try {
-    const isAdmin = req.user && ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    const isAdmin = req.user && req.user.role === 'super_admin';
     const now = Date.now();
     
     // Serve from cache if less than 30s old (only non-admin as admin needs live counts)
@@ -25,7 +25,6 @@ exports.getStats = async (req, res) => {
     let detailedStats = {};
     if (isAdmin) {
       const activeStudents = await User.countDocuments({ role: 'student' });
-      const activeTeachers = await User.countDocuments({ role: { $in: ['teacher', 'hod'] } });
       
       const CategoryBreakdown = await Resource.aggregate([
         { $group: { _id: '$category', count: { $sum: 1 } } }
@@ -35,7 +34,7 @@ exports.getStats = async (req, res) => {
         { $group: { _id: '$department', count: { $sum: 1 } } }
       ]);
 
-      detailedStats = { activeStudents, activeTeachers, CategoryBreakdown, DepartmentBreakdown };
+      detailedStats = { activeStudents, CategoryBreakdown, DepartmentBreakdown };
     }
 
     const payload = {
@@ -62,8 +61,8 @@ exports.getStats = async (req, res) => {
 exports.getTeacherAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
-    // Teacher should only see their own stats unless admin
-    const isAdmin = ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    // User should only see their own stats unless admin
+    const isAdmin = req.user.role === 'super_admin';
     if (!isAdmin && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
 
     const totalUploads = await Resource.countDocuments({ uploadedBy: id });
@@ -89,7 +88,7 @@ exports.getTeacherAnalytics = async (req, res) => {
 exports.getStudentAnalytics = async (req, res) => {
   try {
     const { id } = req.params;
-    const isAdmin = ['admin', 'college_admin', 'super_admin'].includes(req.user.role);
+    const isAdmin = req.user.role === 'super_admin';
     if (!isAdmin && req.user.id !== id) return res.status(403).json({ success: false, message: 'Forbidden' });
 
     const user = await User.findById(id).populate('viewedResources');

@@ -68,19 +68,7 @@ function AdminRoute({ children }) {
   return children
 }
 
-function FacultyRoute({ children }) {
-  const { user, loading } = useAuthStore()
-  if (loading) return null
-  if (!user || !['teacher', 'hod'].includes(user.role)) return <Navigate to="/dashboard" replace />
-  return children
-}
 
-function StudentAndFacultyRoute({ children }) {
-  const { user, loading } = useAuthStore()
-  if (loading) return null
-  if (!user || user.role === 'super_admin') return <Navigate to="/dashboard" replace />
-  return children
-}
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuthStore()
@@ -127,8 +115,8 @@ export default function App() {
             <Route path="dashboard"        element={<Dashboard />} />
             <Route path="browse"           element={<Browse />} />
             <Route path="programs"         element={<Programs />} />
-            <Route path="upload"           element={<FacultyRoute><Upload /></FacultyRoute>} />
-            <Route path="my-files"         element={<FacultyRoute><MyFiles /></FacultyRoute>} />
+            <Route path="upload"           element={<Upload />} />
+            <Route path="my-files"         element={<MyFiles />} />
             <Route path="profile"          element={<Profile />} />
             <Route path="profile/:id"      element={<PublicProfile />} />
             <Route path="resources/:id"    element={<ResourceDetail />} />

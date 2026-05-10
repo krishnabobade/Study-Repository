@@ -13,8 +13,7 @@ import {
 const faqsData = [
   // Students
   { category: '📚 For Students', question: 'How do I search for notes or resources?', answer: 'You can use the global search bar at the top of your dashboard, or navigate to the Browse section to filter by course and semester.' },
-  { category: '📚 For Students', question: 'How can I preview a document before downloading?', answer: 'Simply click on any resource card. Our built-in document viewer will open, allowing you to read the full content without downloading.' },
-  { category: '📚 For Students', question: 'How do I download study materials?', answer: 'On any resource page or preview window, click the "Download" button. The file will securely download to your local device.' },
+  { category: '📚 For Students', question: 'How do I download study materials?', answer: 'On any resource page, click the "Download" button. The file will securely download to your local device.' },
   { category: '📚 For Students', question: 'How do I save/bookmark resources?', answer: 'Click the bookmark icon on any resource. You can find all your saved materials in the "Saved" section of your dashboard.' },
   { category: '📚 For Students', question: 'What should I do if a file is not opening?', answer: 'Ensure you have a PDF reader or compatible software installed. If the issue persists, report the bug using the "Report Bug" page.' },
   
@@ -150,13 +149,7 @@ export default function HelpCenter() {
                   <p className="text-xs text-text-muted mt-1 leading-relaxed">Search for notes, past papers, or assignments by course and semester.</p>
                 </div>
               </li>
-              <li className="flex items-start gap-3">
-                <div className="bg-surface p-2 rounded-lg text-text-main border border-border shrink-0 mt-0.5"><Eye size={16} /></div>
-                <div>
-                  <p className="text-sm font-semibold text-text-main">Preview Documents</p>
-                  <p className="text-xs text-text-muted mt-1 leading-relaxed">Click on any file to view it instantly in the browser without downloading.</p>
-                </div>
-              </li>
+
               <li className="flex items-start gap-3">
                 <div className="bg-surface p-2 rounded-lg text-text-main border border-border shrink-0 mt-0.5"><Download size={16} /></div>
                 <div>
@@ -332,10 +325,10 @@ export default function HelpCenter() {
         <Mail className="text-primary-500 mb-4" size={32} />
         <h2 className="text-2xl font-bold text-text-main mb-2">Still need help?</h2>
         <p className="text-text-muted mb-6 max-w-md">
-          Our support team is available 24/7 to help you with any issues you might face. Reach out to us directly via email.
+          Our support team is available 24/7 to help you with any issues you might face. Reach out to us directly via email at krishnabobade1313@gmail.com.
         </p>
-        <a href="mailto:krishna.bobade@mitwpu.edu.in" className="px-6 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors inline-flex items-center gap-2 shadow-sm hover:shadow-md">
-          <Mail size={18} /> krishna.bobade@mitwpu.edu.in
+        <a href="mailto:krishnabobade1313@gmail.com" className="px-6 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors inline-flex items-center gap-2 shadow-sm hover:shadow-md">
+          <Mail size={18} /> krishnabobade1313@gmail.com
         </a>
       </div>
     </div>

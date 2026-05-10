@@ -108,7 +108,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ### 📞 Support
-For emergency institutional support or bug reports, please contact [krishna.bobade@mitwpu.edu.in](mailto:krishna.bobade@mitwpu.edu.in).
+For emergency institutional support or bug reports, please contact [krishnabobade1313@gmail.com](mailto:krishnabobade1313@gmail.com).
 =======
 # StudyRepository
 >>>>>>> cee81a112f4ffac9379423d83e890fe14a347cf8

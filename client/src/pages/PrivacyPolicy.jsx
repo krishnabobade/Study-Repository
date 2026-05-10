@@ -34,8 +34,8 @@ export default function PrivacyPolicy() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-ink-500/5 rounded-full blur-[120px] -z-10" />
         
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <Link to="/login" className="inline-flex items-center gap-2 text-ink-400 hover:text-ink-300 text-sm font-medium mb-8 transition-colors">
-            <ArrowLeft size={14} /> Back to Sign In
+          <Link to="/dashboard" className="inline-flex items-center gap-2 text-ink-400 hover:text-ink-300 text-sm font-medium mb-8 transition-colors">
+            <ArrowLeft size={14} /> Back to Dashboard
           </Link>
           <h1 className="text-4xl md:text-5xl font-black text-text-main mb-6 tracking-tight">Privacy Policy</h1>
           <p className="text-text-muted text-lg max-w-2xl leading-relaxed">

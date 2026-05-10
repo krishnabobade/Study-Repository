@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String },
   role: { 
     type: String, 
-    enum: ['student', 'teacher', 'hod', 'department_admin', 'college_admin', 'super_admin'], 
+    enum: ['student', 'super_admin'], 
     default: 'student' 
   },
   permissions: [{ type: String }], // e.g. ['MANAGE_USERS', 'APPROVE_UPLOADS', 'VIEW_ANALYTICS']

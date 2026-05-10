@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 import { User, Calendar, BookOpen, Download, LayoutDashboard, ChevronLeft, Award, FileText, ThumbsUp, ThumbsDown, Star, Trash2 } from 'lucide-react'
 import api from '../services/api'
 import { timeAgo } from '../components/shared/utils'
+import { SkeletonAvatar, SkeletonTitle, SkeletonText, SkeletonCard } from '../components/shared/Skeleton'
 import useAuthStore from '../store/authStore'
 import toast from 'react-hot-toast'
-import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function PublicProfile() {
   const { id } = useParams()
@@ -16,7 +16,6 @@ export default function PublicProfile() {
   const [myInteraction, setMyInteraction] = useState(null)
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
-  const [previewFile, setPreviewFile] = useState(null)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -47,8 +46,20 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
+      <div className="p-6 max-w-4xl mx-auto space-y-6">
+        <div className="card p-6 md:p-8 relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
+            <SkeletonAvatar size={100} />
+            <div className="flex-1 text-center md:text-left space-y-3 w-full">
+              <SkeletonTitle width="50%" />
+              <SkeletonText lines={2} />
+              <div className="flex justify-center md:justify-start gap-4 mt-4">
+                <SkeletonText lines={1} className="w-24" />
+                <SkeletonText lines={1} className="w-24" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -215,13 +226,7 @@ export default function PublicProfile() {
                       <span className="shrink-0">{timeAgo(item.createdAt)}</span>
                     </div>
                   </div>
-                  <button 
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreviewFile(item); }}
-                    className="p-1.5 rounded-lg bg-panel border border-border text-text-muted hover:text-text-main transition-all opacity-0 group-hover:opacity-100"
-                    title="Quick Preview"
-                  >
-                    <Eye size={14} />
-                  </button>
+
                 </div>
               </Link>
             ))}
@@ -229,20 +234,7 @@ export default function PublicProfile() {
         </motion.div>
       )}
 
-      {previewFile && (
-        <DocumentViewer
-          url={previewFile.fileUrl}
-          type={previewFile.fileType}
-          title={previewFile.title}
-          onClose={() => setPreviewFile(null)}
-          onDownload={async () => {
-             try {
-               const { data } = await api.post(`/resources/${previewFile._id}/download`)
-               window.open(data.fileUrl, '_blank')
-             } catch { toast.error('Download failed') }
-          }}
-        />
-      )}
+
     </div>
   )
 }

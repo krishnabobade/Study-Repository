@@ -7,8 +7,8 @@ exports.createAssignment = async (req, res) => {
   try {
     const { title, description, subject, course, semester, dueDate, attachments } = req.body;
     
-    // Only teachers/admins can create
-    if (req.user.role === 'student') return res.status(403).json({ message: 'Not authorized' });
+    // Only super_admin can create
+    if (req.user.role !== 'super_admin') return res.status(403).json({ message: 'Not authorized' });
 
     const assignment = await Assignment.create({
       title, description, subject, course, semester, dueDate, attachments,
@@ -23,9 +23,9 @@ exports.createAssignment = async (req, res) => {
 
 exports.getAssignments = async (req, res) => {
   try {
-    const filter = req.user.role === 'student' 
-      ? { course: req.user.course, semester: req.user.semester, isActive: true } 
-      : { uploadedBy: req.user._id };
+    const filter = req.user.role === 'super_admin' 
+      ? {} 
+      : { course: req.user.course, semester: req.user.semester, isActive: true };
 
     const assignments = await Assignment.find(filter).sort({ dueDate: 1 }).populate('uploadedBy', 'name avatar');
     res.json({ success: true, assignments });

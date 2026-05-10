@@ -5,7 +5,7 @@ const announcementController = require('../controllers/announcement.controller')
 
 router.use(protect);
 
-router.post('/', authorize('teacher', 'admin'), announcementController.createAnnouncement);
+router.post('/', authorize('super_admin'), announcementController.createAnnouncement);
 router.get('/', announcementController.getAnnouncements);
 
 module.exports = router;

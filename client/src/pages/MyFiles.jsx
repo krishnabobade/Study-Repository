@@ -4,14 +4,12 @@ import { Trash2, Download, Eye, FolderOpen, ExternalLink, Upload } from 'lucide-
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { FileTypeBadge, CategoryBadge, timeAgo } from '../components/shared/utils'
-import Skeleton from '../components/shared/Skeleton.jsx'
-import DocumentViewer from '../components/shared/DocumentViewer'
+import { SkeletonList } from '../components/shared/Skeleton.jsx'
 
 export default function MyFiles() {
   const [resources, setResources] = useState([])
   const [loading, setLoading]     = useState(true)
   const [deleting, setDeleting]   = useState(null)
-  const [previewFile, setPreviewFile] = useState(null)
 
   const fetchFiles = async () => {
     try {
@@ -49,7 +47,7 @@ export default function MyFiles() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">{[...Array(5)].map((_,i) => <Skeleton key={i} className="h-20" />)}</div>
+        <SkeletonList items={5} />
       ) : resources.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -83,20 +81,12 @@ export default function MyFiles() {
                 transition={{ delay: i * 0.05 }}
                 className="px-5 py-4 flex items-center gap-4 hover:bg-white/[0.02] group transition-colors">
 
-                {/* Icon - Clickable for Preview */}
-                <button 
-                  onClick={async () => {
-                    setPreviewFile(r);
-                    try {
-                      const { data } = await api.post(`/resources/${r._id}/view`);
-                      setResources(prev => prev.map(item => item._id === r._id ? { ...item, views: data.views } : item));
-                    } catch (err) {}
-                  }}
-                  className="w-10 h-10 rounded-xl bg-ink-500/15 flex items-center justify-center shrink-0 text-lg hover:bg-ink-500/25 transition-colors cursor-pointer"
-                  title="Quick View"
+                {/* Icon */}
+                <div 
+                  className="w-10 h-10 rounded-xl bg-ink-500/15 flex items-center justify-center shrink-0 text-lg"
                 >
                   {r.fileType === 'pdf' ? '📄' : r.fileType === 'doc' ? '📝' : r.fileType === 'ppt' ? '📊' : r.fileType === 'image' ? '🖼️' : '📎'}
-                </button>
+                </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
@@ -125,17 +115,7 @@ export default function MyFiles() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={async () => {
-                    setPreviewFile(r);
-                    try {
-                      const { data } = await api.post(`/resources/${r._id}/view`);
-                      setResources(prev => prev.map(item => item._id === r._id ? { ...item, views: data.views } : item));
-                    } catch (err) {}
-                  }}
-                    className="p-2 rounded-lg hover:bg-panel text-text-muted hover:text-text-main transition-colors"
-                    title="View Document">
-                    <Eye size={14} />
-                  </button>
+
                   <a href={r.fileUrl} target="_blank" rel="noreferrer"
                     className="p-2 rounded-lg hover:bg-panel text-text-muted hover:text-text-main transition-colors"
                     title="Open External">
@@ -157,15 +137,6 @@ export default function MyFiles() {
             ))}
           </div>
         </div>
-      )}
-      {previewFile && (
-        <DocumentViewer
-          url={previewFile.fileUrl}
-          type={previewFile.fileType}
-          title={previewFile.title}
-          onClose={() => setPreviewFile(null)}
-          onDownload={() => handleDownload(previewFile._id, previewFile.fileUrl)}
-        />
       )}
     </div>
   )

@@ -34,6 +34,6 @@ We are always looking for ways to improve! If you have an idea, please open an i
 - Ensure all new features have appropriate loading states (Skeletons).
 
 ## Security
-If you discover a security vulnerability, please do NOT open a public issue. Instead, email [krishna.bobade@mitwpu.edu.in](mailto:krishna.bobade@mitwpu.edu.in) directly.
+If you discover a security vulnerability, please do NOT open a public issue. Instead, email [krishnabobade1313@gmail.com](mailto:krishnabobade1313@gmail.com) directly.
 
 Thank you!

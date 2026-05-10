@@ -31,12 +31,12 @@
 }
 
 .light-mode {
-  --surface: #F8FAFC;
-  --panel: #F1F5F9;
-  --card: #FFFFFF;
-  --border: #E2E8F0;
-  --text-main: #0F172A;
-  --text-muted: #64748B;
+  --surface: #F4F4F5; /* Deep enough to make white cards pop */
+  --panel: #FAFAFA;   /* Subtle offset for sidebars */
+  --card: #FFFFFF;    /* Pure white for elevated components */
+  --border: #D4D4D8;  /* Strong, visible borders (Zinc 300) */
+  --text-main: #09090B; /* Crisp, high-contrast near-black */
+  --text-muted: #52525B; /* Readable dark gray (Zinc 600) */
   
   --ink-primary: #4F46E5;
   --ink-secondary: #6366F1;
@@ -45,19 +45,20 @@
   --ink-200: 199 210 254;
   --ink-300: 165 180 252;
   --ink-400: 129 140 248;
-  --ink-500: 99 102 241;
-  --ink-600: 79 70 229;
-  --ink-700: 67 56 202;
-  --ink-800: 55 48 163;
-  --ink-900: 49 46 129;
-  --ink-950: 30 27 75;
+  --ink-500: 79 70 229;
+  --ink-600: 67 56 202;
+  --ink-700: 55 48 163;
+  --ink-800: 49 46 129;
+  --ink-900: 30 27 75;
+  --ink-950: 15 14 40;
   
   --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
   
-  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 0 3px rgba(15, 23, 42, 0.03);
-  --shadow-btn: 0 4px 12px rgba(79, 70, 229, 0.25);
-  --shadow-input: inset 0 2px 4px rgba(15, 23, 42, 0.02), 0 1px 2px rgba(15, 23, 42, 0.04);
+  /* Premium modern shadows */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03), 0 12px 24px rgba(0, 0, 0, 0.03);
+  --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(79, 70, 229, 0.2);
+  --shadow-input: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 @layer base {
@@ -144,6 +145,66 @@
 
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* PREMIUM LIGHT MODE COMPONENT OVERRIDES */
+  .light-mode .card {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+  }
+  .light-mode .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.04);
+    border-color: #A1A1AA;
+    transform: translateY(-2px);
+  }
+
+  .light-mode .input {
+    transition: all 0.2s ease;
+  }
+  .light-mode .input:hover {
+    border-color: #A1A1AA;
+  }
+  .light-mode .input:focus {
+    border-color: var(--ink-500);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15), 0 1px 2px rgba(0,0,0,0.05);
+    background-color: #FFFFFF;
+  }
+
+  .light-mode .btn-primary {
+    background: linear-gradient(180deg, var(--ink-500) 0%, var(--ink-600) 100%);
+    border: 1px solid var(--ink-700);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 2px 4px rgba(79, 70, 229, 0.2);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+  }
+  .light-mode .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--ink-400) 0%, var(--ink-500) 100%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 4px 12px rgba(79, 70, 229, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .light-mode .btn-ghost {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+  }
+  .light-mode .btn-ghost:hover {
+    background-color: #FFFFFF;
+    border-color: #E4E4E7;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .light-mode .btn-danger {
+    transition: all 0.2s ease;
+    background-color: #FEF2F2;
+    border: 1px solid #FECACA;
+  }
+  .light-mode .btn-danger:hover {
+    background-color: #FEE2E2;
+    border-color: #F87171;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .light-mode .glass {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   }
 }
 

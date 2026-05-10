@@ -100,10 +100,10 @@ export default function Terms() {
         {/* Footer actions */}
         <div className="pt-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-border">
           <div className="text-text-muted text-sm">
-            Questions? Contact <a href="mailto:support@studyrepo.edu" className="text-ink-400 hover:underline">legal@studyrepo.edu</a>
+            Questions? Contact <a href="mailto:krishnabobade1313@gmail.com" className="text-ink-400 hover:underline">krishnabobade1313@gmail.com</a>
           </div>
-          <Link to="/login" className="flex items-center gap-2 px-6 py-3 bg-panel border border-border rounded-xl text-text-main font-semibold hover:bg-surface transition-all">
-            <ArrowLeft size={16} /> Back to Login
+          <Link to="/dashboard" className="flex items-center gap-2 px-6 py-3 bg-panel border border-border rounded-xl text-text-main font-semibold hover:bg-surface transition-all">
+            <ArrowLeft size={16} /> Back to Dashboard
           </Link>
         </div>
       </div>

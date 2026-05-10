@@ -19,11 +19,11 @@ const NAV = [
   { to: '/browse',    icon: Search,          label: 'Browse' },
   { to: '/upload',    icon: Upload,          label: 'Upload' },
   { to: '/my-files',  icon: FolderOpen,      label: 'My Files' },
-  { to: '/profile',   icon: User,            label: 'Profile' },
   { to: '/admin/users', icon: Users,         label: 'Manage Users',    adminOnly: true },
   { to: '/admin/resources', icon: FileText,  label: 'Manage Files',    adminOnly: true },
   { to: '/feedback',  icon: MessageSquare,   label: 'User Feedback',   adminOnly: true },
   { to: '/admin/logs', icon: Shield,         label: 'Audit Logs',      adminOnly: true },
+  { to: '/profile',   icon: User,            label: 'Profile' },
 ]
 
 export default function DashboardLayout() {
@@ -60,7 +60,8 @@ export default function DashboardLayout() {
 
     // Socket.IO Realtime Connection
     if (!user) return;
-    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    const backendUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:5000';
+    const socket = io(backendUrl);
     socket.emit('join_user_channel', user._id || user.id);
 
     socket.on('new_notification', (notif) => {
@@ -147,14 +148,13 @@ export default function DashboardLayout() {
       )}
 
       <div className="mx-3 mb-4 border-t border-border pt-4">
-        <p className="text-[10px] text-text-muted mb-2 font-medium uppercase tracking-wider px-2">Support & Legal</p>
+        <p className="text-[10px] text-text-main mb-2 font-black uppercase tracking-wider px-2">Support & Legal</p>
         <div className="flex flex-col gap-1">
           {[
             { label: 'Help Center', to: '/help' },
             { label: 'Report Bug', to: '/bug-report' },
-            { label: 'Emergency Support', to: 'mailto:krishna.bobade@mitwpu.edu.in', external: true },
-            { label: 'Terms', to: '/terms' },
-            { label: 'Privacy', to: '/privacy-policy' }
+            { label: 'Terms and Conditions', to: '/terms' },
+            { label: 'Privacy Policy', to: '/privacy-policy' }
           ].map((link) => link.external ? (
             <a
               key={link.label}

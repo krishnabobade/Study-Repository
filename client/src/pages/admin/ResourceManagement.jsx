@@ -147,7 +147,7 @@ export default function ResourceManagement() {
                   target="_blank" 
                   rel="noreferrer"
                   className="p-2 bg-panel border border-border text-text-muted hover:text-ink-400 rounded-xl transition-all"
-                  title="Preview Original"
+                  title="Open Original"
                 >
                   <ExternalLink size={18} />
                 </a>
