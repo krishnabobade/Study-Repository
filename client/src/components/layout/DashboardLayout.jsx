@@ -51,6 +51,11 @@ function Sidebar({ mobile = false, user, setMobileMenuOpen, setLogoutConfirmOpen
               e.stopPropagation();
               setMobileMenuOpen(false);
             }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setMobileMenuOpen(false);
+            }}
             className="p-2.5 bg-surface border border-border hover:bg-panel rounded-xl text-text-muted hover:text-text-main transition-all active:scale-95 flex items-center justify-center cursor-pointer relative z-[80]"
             aria-label="Close menu"
           >
