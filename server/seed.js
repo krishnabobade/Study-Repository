@@ -29,7 +29,7 @@ const seedData = async () => {
         await mongoose.connect(MONGO_URI);
         console.log('Connected to MongoDB for seeding...');
 
-        // 1. Create Admin (only if not exists)
+        // 1. Create Admin (or upgrade if exists)
         const adminExists = await User.findOne({ email: ADMIN_EMAIL });
         if (!adminExists) {
             await User.create({
@@ -39,10 +39,13 @@ const seedData = async () => {
                 role: 'super_admin',
                 isVerified: true
             });
-            // Log existence but never log the password
             console.log(`✅ Admin user created: ${ADMIN_EMAIL}`);
         } else {
-            console.log(`ℹ️  Admin user already exists: ${ADMIN_EMAIL}`);
+            adminExists.role = 'super_admin';
+            adminExists.password = SEED_PASSWORD;
+            adminExists.isVerified = true;
+            await adminExists.save();
+            console.log(`✅ Admin user updated to super_admin and password updated: ${ADMIN_EMAIL}`);
         }
 
         console.log('Seeding completed successfully.');
