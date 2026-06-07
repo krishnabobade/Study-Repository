@@ -186,7 +186,7 @@ export default function ResourceDetail() {
           ].map(({ label, value }) => (
             <div key={label} className="p-3 rounded-xl bg-panel/30 border border-border">
               <p className="text-xs text-text-muted mb-0.5">{label}</p>
-              <p className="text-sm font-medium text-text-main">{value}</p>
+              <p className="text-sm font-medium text-text-main break-words">{value}</p>
             </div>
           ))}
         </div>

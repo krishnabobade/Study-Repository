@@ -147,8 +147,11 @@ export default function NotificationPanel({
                   </button>
                 )}
                 <button 
-                  onClick={onClose}
-                  className="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface transition-colors active:scale-95 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  className="p-2.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface transition-colors active:scale-95 shrink-0 cursor-pointer"
                   aria-label="Close notifications"
                 >
                   <X size={18} />

@@ -144,7 +144,7 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-ink-500/10 to-primary-500/5 border border-ink-500/20 rounded-2xl p-6 relative overflow-hidden"
+          className="bg-gradient-to-r from-ink-500/10 to-ink-500/5 border border-ink-500/20 rounded-2xl p-6 relative overflow-hidden"
         >
           <div className="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-ink-500/10 to-transparent pointer-events-none" />
           <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">

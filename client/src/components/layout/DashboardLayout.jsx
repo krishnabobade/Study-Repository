@@ -168,6 +168,7 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      if (!document.body.contains(event.target)) return;
       const clickedBell = notifBellRef.current && notifBellRef.current.contains(event.target)
       const clickedPanel = notifPanelRef.current && notifPanelRef.current.contains(event.target)
       if (!clickedBell && !clickedPanel) {
@@ -215,9 +216,11 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [logoutConfirmOpen]);
 
-  // Prevent background scroll on mobile when sidebar is open
+  // Prevent background scroll on mobile when sidebar or notifications are open
   useEffect(() => {
-    if (mobileMenuOpen) {
+    const isMobile = window.innerWidth < 1024;
+    const shouldLock = mobileMenuOpen || (notifOpen && isMobile);
+    if (shouldLock) {
       document.body.style.overflow = 'hidden';
       document.body.style.height = '100vh';
       document.documentElement.style.overflow = 'hidden';
@@ -234,7 +237,7 @@ export default function DashboardLayout() {
       document.documentElement.style.overflow = '';
       document.documentElement.style.height = '';
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, notifOpen]);
 
   const handleLogout = () => { 
     logout(); 

@@ -163,7 +163,7 @@ const RegisterForm = () => {
           <AnimatePresence mode='wait'>
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <div className="relative">
                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
                     <input type="text" placeholder="First name *" value={form.firstName}
@@ -227,7 +227,7 @@ const RegisterForm = () => {
                 <AnimatePresence>
                   {form.role === 'student' && (isFocused || form.password.length > 0) && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-                      className="bg-panel border border-border rounded-xl p-3 grid grid-cols-2 gap-y-2 gap-x-1 text-[11px] sm:text-xs">
+                      className="bg-panel border border-border rounded-xl p-3 grid grid-cols-1 xs:grid-cols-2 gap-y-2 gap-x-1 text-[11px] sm:text-xs">
                       {passwordCriteria.map(c => (
                         <div key={c.id} className={`flex items-center gap-1.5 transition-colors duration-300 ${c.valid ? 'text-green-400' : 'text-text-muted/40'}`}>
                           {c.valid ? <Check size={12} className="shrink-0" /> : <X size={12} className="shrink-0" />}
@@ -336,7 +336,7 @@ const RegisterForm = () => {
                     onChange={set('phone')} maxLength={10} className="input pl-11" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <div className="relative">
                     <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
                     <input 
@@ -366,7 +366,7 @@ const RegisterForm = () => {
                     onChange={set('collegeName')} readOnly className="input pl-11 opacity-70 cursor-not-allowed" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <div className="relative">
                     <GraduationCap size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                     <select value={form.course} onChange={set('course')} required className="select pl-10 text-sm">

@@ -97,15 +97,15 @@ export default function HelpCenter() {
           onClick={(e) => handleScroll(e, 'getting-started')}
           className="bg-panel border border-border rounded-2xl p-6 shadow-sm flex flex-col cursor-pointer"
         >
-          <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center mb-4">
-            <FileText className="text-primary-500" size={24} />
+          <div className="w-12 h-12 bg-ink-500/10 rounded-xl flex items-center justify-center mb-4">
+            <FileText className="text-ink-400" size={24} />
           </div>
           <h3 className="text-lg font-semibold text-text-main mb-2">Getting Started</h3>
           <p className="text-sm text-text-muted mb-4 flex-grow">Learn how to upload, download, and manage your academic resources effectively.</p>
           <a 
             href="#getting-started" 
             onClick={(e) => handleScroll(e, 'getting-started')}
-            className="text-sm font-medium text-primary-500 hover:text-primary-400 transition-colors mt-auto"
+            className="text-sm font-medium text-ink-400 hover:text-ink-300 transition-colors mt-auto"
           >
             Read articles &rarr;
           </a>
@@ -156,8 +156,8 @@ export default function HelpCenter() {
           {/* For Students */}
           <div className="bg-panel border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-4 mb-6 border-b border-border pb-4">
-              <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center">
-                <GraduationCap className="text-primary-500" size={24} />
+              <div className="w-12 h-12 bg-ink-500/10 rounded-xl flex items-center justify-center">
+                <GraduationCap className="text-ink-400" size={24} />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-text-main">For Students</h3>
@@ -273,13 +273,13 @@ export default function HelpCenter() {
           </p>
           
           <div className="max-w-2xl mx-auto relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary-500 transition-colors" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={20} />
             <input 
               type="text" 
               placeholder="Search for questions or keywords..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-panel border border-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:ring-2 focus:ring-primary-500 outline-none transition-all shadow-sm text-base"
+              className="w-full bg-panel border border-border rounded-2xl py-4 pl-12 pr-4 text-text-main focus:ring-2 focus:ring-ink-500/50 outline-none transition-all shadow-sm text-base"
             />
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function HelpCenter() {
                   {faqs.map((faq) => (
                     <div 
                       key={faq.idx} 
-                      className={`bg-panel border rounded-2xl overflow-hidden transition-all duration-200 ${openFaqIndex === faq.idx ? 'border-primary-500/40 shadow-md ring-1 ring-primary-500/10' : 'border-border hover:border-border/80 hover:shadow-sm'}`}
+                      className={`bg-panel border rounded-2xl overflow-hidden transition-all duration-200 ${openFaqIndex === faq.idx ? 'border-ink-500/40 shadow-md ring-1 ring-ink-500/10' : 'border-border hover:border-border/80 hover:shadow-sm'}`}
                     >
                       <button 
                         onClick={() => toggleFaq(faq.idx)}
@@ -304,7 +304,7 @@ export default function HelpCenter() {
                         <span className="font-semibold text-text-main pr-4 text-base">{faq.question}</span>
                         <ChevronDown 
                           size={20} 
-                          className={`text-text-muted shrink-0 transition-transform duration-300 ${openFaqIndex === faq.idx ? 'rotate-180 text-primary-500' : ''}`} 
+                          className={`text-text-muted shrink-0 transition-transform duration-300 ${openFaqIndex === faq.idx ? 'rotate-180 text-ink-400' : ''}`} 
                         />
                       </button>
                       <AnimatePresence>
@@ -336,7 +336,7 @@ export default function HelpCenter() {
             <p className="text-text-muted">Try using a different keyword or checking another category.</p>
             <button 
               onClick={() => setSearchQuery('')}
-              className="mt-6 text-sm font-medium text-primary-500 hover:text-primary-400 px-6 py-2 bg-primary-500/10 rounded-full transition-colors"
+              className="mt-6 text-sm font-medium text-ink-400 hover:text-ink-300 px-6 py-2 bg-ink-500/10 rounded-full transition-colors cursor-pointer"
             >
               Clear search
             </button>
@@ -344,13 +344,13 @@ export default function HelpCenter() {
         )}
       </div>
 
-      <div className="mt-16 bg-primary-500/5 border border-primary-500/20 rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center">
-        <Mail className="text-primary-500 mb-4" size={32} />
+      <div className="mt-16 bg-ink-500/5 border border-ink-500/20 rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center">
+        <Mail className="text-ink-400 mb-4" size={32} />
         <h2 className="text-2xl font-bold text-text-main mb-2">Still need help?</h2>
         <p className="text-text-muted mb-6 max-w-md">
           Our support team is available 24/7 to help you with any issues you might face. Reach out to us directly via email at krishnabobade1313@gmail.com.
         </p>
-        <a href="mailto:krishnabobade1313@gmail.com" className="px-6 py-3 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600 transition-colors inline-flex items-center gap-2 shadow-sm hover:shadow-md">
+        <a href="mailto:krishnabobade1313@gmail.com" className="px-6 py-3 bg-ink-500 text-white rounded-xl font-medium hover:bg-ink-600 transition-colors inline-flex items-center gap-2 shadow-sm hover:shadow-md">
           <Mail size={18} /> krishnabobade1313@gmail.com
         </a>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/shared/SEO';
 import { Bug, Send, ChevronLeft } from 'lucide-react';
@@ -27,6 +27,16 @@ export default function BugReport() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        navigate(-1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-2xl mx-auto w-full">
@@ -92,19 +102,28 @@ export default function BugReport() {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={loading}
-          className="btn-primary w-full justify-center py-3 text-base mt-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <>
-              <Send size={18} /> Submit Report
-            </>
-          )}
-        </button>
+        <div className="flex gap-3 mt-4">
+          <button 
+            type="button"
+            onClick={() => navigate(-1)}
+            className="btn-secondary flex-1 justify-center py-3 text-base cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="btn-primary flex-1 justify-center py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+          >
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <Send size={18} /> Submit Report
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );

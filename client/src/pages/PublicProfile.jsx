@@ -63,7 +63,7 @@ export default function PublicProfile() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-8 pt-8 border-t border-border">
+          <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-5 gap-3 mt-8 pt-8 border-t border-border">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="bg-panel/50 border border-border rounded-2xl p-5 flex flex-col items-center justify-center">
                 <SkeletonBase className="h-5 w-5 mb-3 opacity-20" />
