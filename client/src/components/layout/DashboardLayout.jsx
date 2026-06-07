@@ -45,11 +45,16 @@ function Sidebar({ mobile = false, user, setMobileMenuOpen, setLogoutConfirmOpen
         </div>
         {mobile && (
           <button 
-            onClick={() => setMobileMenuOpen(false)}
-            className="p-1.5 bg-surface border border-border hover:bg-panel rounded-xl text-text-muted hover:text-text-main transition-all active:scale-90 flex items-center justify-center cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setMobileMenuOpen(false);
+            }}
+            className="p-2.5 bg-surface border border-border hover:bg-panel rounded-xl text-text-muted hover:text-text-main transition-all active:scale-95 flex items-center justify-center cursor-pointer relative z-[80]"
             aria-label="Close menu"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
         )}
       </div>
@@ -444,6 +449,7 @@ export default function DashboardLayout() {
             <motion.aside
               initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
               className="lg:hidden fixed inset-y-0 left-0 z-[70] w-64 bg-panel border-r border-border shadow-2xl flex flex-col overscroll-contain"
               style={{ overscrollBehavior: 'contain' }}
             >
