@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png?v=2" />
+    <link rel="shortcut icon" type="image/png" href="/logo.png?v=2" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <meta name="description" content="Study Repository — A premium academic repository for students and teachers to share and discover study materials smoothly." />
+    <meta name="keywords" content="student, study resources, education, college, notes, syllabus, mock tests, premium SaaS, learn" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://study-repository-ten.vercel.app/" />
+    <meta property="og:title" content="Study Repository — Discover & Share Academic Resources" />
+    <meta property="og:description" content="A premium academic repository for students to share and discover study materials effortlessly." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="google-site-verification" content="YOUR_GOOGLE_SEARCH_CONSOLE_TAG_HERE" />
+    <link rel="canonical" href="https://study-repository-ten.vercel.app/" />
+    <title>Study Repository | Premium Academic Repository</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('theme-mode');
+          var isDark = mode === 'dark' || (!mode && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (!isDark) {
+            document.documentElement.classList.add('light-mode');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    
+    <!-- Google Analytics Integration -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+# =============================================
+# Study Repository — Comprehensive .gitignore
+# =============================================
+
+# ---- Dependencies ----
+node_modules/
+.pnp
+.pnp.js
+
+# ---- Environment Variables (NEVER commit .env files) ----
+# Root level
+.env
+.env.*
+!.env.example
+
+# Server-level
+server/.env
+server/.env.*
+!server/.env.example
+
+# Client-level
+client/.env
+client/.env.*
+!client/.env.example
+
+# ---- Build Outputs / Generated Assets ----
+client/dist/
+server/dist/
+build/
+dist/
+.next/
+out/
+
+# ---- Server Logs & Audit Trails ----
+server/logs/*.log
+server/logs/*.log.gz
+server/logs/*-audit.json
+*.log
+*.log.gz
+logs/
+
+# ---- Uploads (user-generated content — stored in cloud) ----
+server/uploads/
+uploads/
+
+# ---- Test & Coverage ----
+coverage/
+.nyc_output/
+*.test.js.snap
+
+# ---- Platform / OS Artifacts ----
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+*.psd
+*.sketch
+
+# ---- Editor Config ----
+.vs/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ---- Deployment Artifacts ----
+.vercel
+.render
+.netlify
+
+# ---- Misc ----
+*.cache
+.parcel-cache/
+.turbo/
+.swc/

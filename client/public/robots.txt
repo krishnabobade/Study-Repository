@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /settings
+Disallow: /profile
+
+Sitemap: https://study-repository-ten.vercel.app/sitemap.xml
