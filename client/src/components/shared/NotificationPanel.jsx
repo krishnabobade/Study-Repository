@@ -117,7 +117,7 @@ export default function NotificationPanel({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="fixed inset-x-4 top-20 bottom-4 lg:absolute lg:inset-auto lg:right-0 lg:top-12 lg:w-[420px] lg:bottom-auto max-h-[580px] bg-panel border border-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] z-50 overflow-hidden flex flex-col font-sans select-none"
+            className="fixed inset-x-4 top-20 bottom-4 lg:absolute lg:inset-auto lg:right-6 lg:top-[52px] lg:w-[420px] lg:bottom-auto max-h-[580px] bg-panel border border-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] z-50 overflow-hidden flex flex-col font-sans select-none"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border bg-panel/10">

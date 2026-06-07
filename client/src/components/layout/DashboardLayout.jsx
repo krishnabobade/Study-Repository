@@ -359,19 +359,6 @@ export default function DashboardLayout() {
                 </span>
               )}
             </button>
-
-            <NotificationPanel
-              panelRef={notifPanelRef}
-              isOpen={notifOpen}
-              onClose={() => setNotifOpen(false)}
-              notifications={notifications}
-              unreadCount={unread}
-              loading={notifLoading}
-              onMarkRead={handleMarkRead}
-              onMarkAllRead={markAllRead}
-              onDelete={handleDeleteNotification}
-              onClearAll={handleClearAll}
-            />
           </div>
 
           {/* Avatar */}
@@ -379,6 +366,19 @@ export default function DashboardLayout() {
             {avatar}
           </NavLink>
         </header>
+
+        <NotificationPanel
+          panelRef={notifPanelRef}
+          isOpen={notifOpen}
+          onClose={() => setNotifOpen(false)}
+          notifications={notifications}
+          unreadCount={unread}
+          loading={notifLoading}
+          onMarkRead={handleMarkRead}
+          onMarkAllRead={markAllRead}
+          onDelete={handleDeleteNotification}
+          onClearAll={handleClearAll}
+        />
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden pb-20 lg:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
