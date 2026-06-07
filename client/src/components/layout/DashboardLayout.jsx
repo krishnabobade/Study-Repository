@@ -168,7 +168,6 @@ export default function DashboardLayout() {
   }, [user, refreshUser]);
   const [notifOpen, setNotifOpen] = useState(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unread, setUnread] = useState(0)
   const [notifLoading, setNotifLoading] = useState(false)
@@ -176,9 +175,8 @@ export default function DashboardLayout() {
   const notifPanelRef = useRef(null)
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false)
 
-  // Automatically close sidebar and notifications when route changes
+  // Automatically close notifications when route changes
   useEffect(() => {
-    setMobileMenuOpen(false)
     setNotifOpen(false)
   }, [location.pathname])
 
@@ -232,10 +230,10 @@ export default function DashboardLayout() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [logoutConfirmOpen]);
 
-  // Prevent background scroll on mobile when sidebar or notifications are open
+  // Prevent background scroll on mobile when notifications are open
   useEffect(() => {
     const isMobile = window.innerWidth < 1024;
-    const shouldLock = mobileMenuOpen || (notifOpen && isMobile);
+    const shouldLock = notifOpen && isMobile;
     if (shouldLock) {
       document.body.style.overflow = 'hidden';
       document.body.style.height = '100vh';
@@ -253,7 +251,7 @@ export default function DashboardLayout() {
       document.documentElement.style.overflow = '';
       document.documentElement.style.height = '';
     };
-  }, [mobileMenuOpen, notifOpen]);
+  }, [notifOpen]);
 
   const handleLogout = () => { 
     logout(); 
@@ -305,17 +303,13 @@ export default function DashboardLayout() {
       <SEO noindex={true} title="Dashboard | Study Repository" />
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-60 bg-panel border-r border-border shrink-0">
-        <Sidebar user={user} setLogoutConfirmOpen={setLogoutConfirmOpen} setMobileMenuOpen={setMobileMenuOpen} />
+        <Sidebar user={user} setLogoutConfirmOpen={setLogoutConfirmOpen} />
       </aside>
 
       {/* Main area */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative">
         {/* Topbar */}
         <header className="relative z-40 h-14 bg-panel/80 backdrop-blur-lg border-b border-border flex items-center px-3 xs:px-4 lg:px-6 gap-2 xs:gap-4 shrink-0">
-          
-          <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden p-2 -ml-2 rounded-xl text-text-muted hover:text-text-main transition-colors">
-            <Menu size={20} />
-          </button>
 
           {/* Mobile Title */}
           <div className="lg:hidden flex items-center gap-2 font-display font-bold text-[17px] text-text-main shrink-0">
@@ -405,64 +399,39 @@ export default function DashboardLayout() {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        {!mobileMenuOpen && (
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-panel/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-          <div className="flex items-center justify-around px-2 py-2">
-            {NAV.filter(item => {
-              if (item.adminOnly && user?.role !== 'super_admin') return false;
-              if (user?.role === 'super_admin' && (item.to === '/upload' || item.to === '/my-files')) return false;
-              return true;
-            }).slice(0, 5).map(({ to, icon: Icon, label }) => (
-              <NavLink key={to} to={to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all duration-200
-                   ${isActive
-                     ? 'text-ink-400'
-                     : 'text-text-muted/70 hover:text-text-main active:scale-95'}`
-                }>
-                {({ isActive }) => <>
-                  <motion.div 
-                    initial={false}
-                    animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.1 : 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    <Icon size={20} className={isActive ? "fill-ink-500/20 stroke-ink-400" : "stroke-current"} strokeWidth={isActive ? 2.5 : 2} />
-                  </motion.div>
-                  <span className={`text-[9px] mt-1 font-medium tracking-wide transition-all ${isActive ? 'opacity-100 font-bold' : 'opacity-70'}`}>
-                    {label.split(' ')[0]}
-                  </span>
-                </>}
-              </NavLink>
-            ))}
-          </div>
-          </nav>
-        )}
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-panel/90 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center justify-around px-2 py-2">
+          {NAV.filter(item => {
+            if (item.adminOnly && user?.role !== 'super_admin') return false;
+            if (user?.role === 'super_admin' && (item.to === '/upload' || item.to === '/my-files')) return false;
+            return true;
+          }).slice(0, 5).map(({ to, icon: Icon, label }) => (
+            <NavLink key={to} to={to}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all duration-200
+                 ${isActive
+                   ? 'text-ink-400'
+                   : 'text-text-muted/70 hover:text-text-main active:scale-95'}`
+              }>
+              {({ isActive }) => <>
+                <motion.div 
+                  initial={false}
+                  animate={{ y: isActive ? -2 : 0, scale: isActive ? 1.1 : 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <Icon size={20} className={isActive ? "fill-ink-500/20 stroke-ink-400" : "stroke-current"} strokeWidth={isActive ? 2.5 : 2} />
+                </motion.div>
+                <span className={`text-[9px] mt-1 font-medium tracking-wide transition-all ${isActive ? 'opacity-100 font-bold' : 'opacity-70'}`}>
+                  {label.split(' ')[0]}
+                </span>
+              </>}
+            </NavLink>
+          ))}
+        </div>
+        </nav>
       </div>
 
-      {/* Mobile Drawer */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setMobileMenuOpen(false)}
-              onTouchStart={() => setMobileMenuOpen(false)}
-              onTouchMove={(e) => e.preventDefault()}
-              className="lg:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
-              style={{ touchAction: 'none' }}
-            />
-            <motion.aside
-              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              onClick={(e) => e.stopPropagation()}
-              className="lg:hidden fixed inset-y-0 left-0 z-[70] w-64 bg-panel border-r border-border shadow-2xl flex flex-col overscroll-contain"
-              style={{ overscrollBehavior: 'contain' }}
-            >
-              <Sidebar mobile={true} user={user} setMobileMenuOpen={setMobileMenuOpen} setLogoutConfirmOpen={setLogoutConfirmOpen} />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+
 
       {/* Logout Confirmation Modal */}
       <AnimatePresence>

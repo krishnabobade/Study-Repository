@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Save, Lock, LogOut, AlertTriangle, User, Check, X } from 'lucide-react'
+import { Camera, Save, Lock, LogOut, AlertTriangle, User, Check, X, HelpCircle, MessageSquare, FileText, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import useAuthStore from '../store/authStore'
 import api from '../services/api'
 
@@ -292,6 +292,41 @@ export default function Profile() {
             Update Password
           </button>
         </form>
+      </motion.div>
+
+      {/* Support & Legal */}
+      <motion.div 
+        initial={{ opacity: 0, y: 12 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: 0.14 }} 
+        className="card p-4 lg:p-6"
+      >
+        <h2 className="font-semibold text-text-main mb-4 flex items-center gap-2">
+          <HelpCircle size={16} className="text-ink-400" />
+          Support & Legal
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { label: 'Help Center', to: '/help', desc: 'FAQs, guides and tutorials', icon: HelpCircle },
+            { label: 'Report Bug', to: '/bug-report', desc: 'Let us know if something broke', icon: MessageSquare },
+            { label: 'Terms and Conditions', to: '/terms', desc: 'Read our terms of service', icon: FileText },
+            { label: 'Privacy Policy', to: '/privacy-policy', desc: 'How we handle your data', icon: Shield }
+          ].map((item) => (
+            <Link 
+              key={item.label}
+              to={item.to}
+              className="flex items-start gap-3 p-3.5 rounded-xl bg-panel/40 border border-border hover:border-ink-500/30 hover:bg-panel/75 transition-all group active:scale-[0.99]"
+            >
+              <div className="p-2 rounded-lg bg-surface border border-border group-hover:border-ink-500/20 group-hover:bg-ink-500/5 text-text-muted group-hover:text-ink-400 transition-colors shrink-0">
+                <item.icon size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-text-main group-hover:text-ink-300 transition-colors">{item.label}</p>
+                <p className="text-[10px] text-text-muted mt-0.5 font-medium leading-relaxed">{item.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </motion.div>
 
       {/* Danger zone */}
