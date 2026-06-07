@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -68,31 +68,51 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchData = () => {
-      const currentUser = useAuthStore.getState().user;
-      if (currentUser?.role !== 'super_admin') {
-        refreshUser();
-      }
-      Promise.all([
-        api.get('/resources?limit=6&sort=-createdAt'),
-        api.get('/trending'),
-        api.get('/analytics/stats'),
-      ]).then(([r, t, s]) => {
-        setRecent(r.data.resources)
-        if (t.data?.success) {
-          setTrendingData(t.data.trending)
-        }
-        setStats(s.data.stats)
-      }).catch((err) => {
-        if (loading) toast.error('Failed to load dashboard data.')
-      }).finally(() => setLoading(false))
+  const [recentLimit, setRecentLimit] = useState(6)
+  const [topRefreshing, setTopRefreshing] = useState(false)
+  const [bottomLoading, setBottomLoading] = useState(false)
+
+  const lastScrollTriggerRef = useRef(0)
+  const lastTopRefreshTimeRef = useRef(0)
+
+  const fetchData = useCallback((showSkeleton = false, customLimit = recentLimit) => {
+    if (showSkeleton) setLoading(true)
+    const currentUser = useAuthStore.getState().user
+    if (currentUser?.role !== 'super_admin') {
+      refreshUser()
     }
+    return Promise.all([
+      api.get(`/resources?limit=${customLimit}&sort=-createdAt`),
+      api.get('/trending'),
+      api.get('/analytics/stats'),
+    ]).then(([r, t, s]) => {
+      setRecent(r.data.resources)
+      if (t.data?.success) {
+        setTrendingData(t.data.trending)
+      }
+      setStats(s.data.stats)
+    }).catch((err) => {
+      if (showSkeleton) toast.error('Failed to load dashboard data.')
+    }).finally(() => {
+      if (showSkeleton) setLoading(false)
+    })
+  }, [refreshUser, recentLimit])
 
-    fetchData()
-    const interval = setInterval(fetchData, 30000) // Refresh every 30s
+  // Mount effect
+  useEffect(() => {
+    fetchData(true)
+  }, [])
 
-    // WebSocket live updates
+  // Polling effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData(false)
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [fetchData])
+
+  // Socket effect
+  useEffect(() => {
     const backendUrl = import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '') 
       : 'http://localhost:5000'
@@ -100,12 +120,53 @@ export default function Dashboard() {
     socket.on('trending_update', (newTrendingData) => {
       setTrendingData(newTrendingData)
     })
-
     return () => {
-      clearInterval(interval)
       socket.disconnect()
     }
   }, [])
+
+  // Scroll listener effect
+  useEffect(() => {
+    const mainContainer = document.querySelector('main')
+    if (!mainContainer) return
+
+    const handleScroll = () => {
+      const now = Date.now()
+      if (now - lastScrollTriggerRef.current < 200) return
+      lastScrollTriggerRef.current = now
+
+      const { scrollTop, scrollHeight, clientHeight } = mainContainer
+
+      // 1. Near Top Refresh (scroll is within 30px of top)
+      if (scrollTop < 30 && !topRefreshing && !loading && !bottomLoading) {
+        if (now - lastTopRefreshTimeRef.current >= 15000) {
+          lastTopRefreshTimeRef.current = now
+          setTopRefreshing(true)
+          fetchData(false).finally(() => setTopRefreshing(false))
+        }
+      }
+
+      // 2. Near Bottom Load More (within 150px of bottom)
+      if (scrollTop + clientHeight >= scrollHeight - 150 && !bottomLoading && !topRefreshing && !loading) {
+        if (recentLimit < 18) {
+          setBottomLoading(true)
+          const nextLimit = recentLimit + 6
+          setRecentLimit(nextLimit)
+          api.get(`/resources?limit=${nextLimit}&sort=-createdAt`)
+            .then((r) => {
+              setRecent(r.data.resources)
+            })
+            .catch(() => {})
+            .finally(() => {
+              setBottomLoading(false)
+            })
+        }
+      }
+    }
+
+    mainContainer.addEventListener('scroll', handleScroll)
+    return () => mainContainer.removeEventListener('scroll', handleScroll)
+  }, [topRefreshing, loading, bottomLoading, recentLimit, fetchData])
 
   const activeResources = trendingData?.[timeframe]?.resources || []
   const displayResources = activeResources.slice(0, 4)
@@ -124,6 +185,23 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-8 lg:space-y-10 relative">
+      {/* Floating Refreshing Pill */}
+      <AnimatePresence>
+        {topRefreshing && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-panel/90 backdrop-blur-xl border border-border shadow-2xl rounded-full">
+              <span className="w-4 h-4 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-text-muted font-medium">Refreshing...</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background ambient light */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-ink-500/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
@@ -255,18 +333,29 @@ export default function Dashboard() {
                 <p className="text-xs text-text-muted mt-1">Be the first to share a resource!</p>
               </div>
             ) : (
-              <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
-                {recent.map((r, i) => (
-                  <motion.div 
-                    key={r._id} 
-                    variants={item}
-                    whileHover={{ scale: 1.01, x: 4 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  >
-                    <ResourceCard resource={r} />
-                  </motion.div>
-                ))}
-              </motion.div>
+              <>
+                <motion.div variants={container} initial="hidden" animate="show" className="space-y-3">
+                  {recent.map((r, i) => (
+                    <motion.div 
+                      key={r._id} 
+                      variants={item}
+                      whileHover={{ scale: 1.01, x: 4 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    >
+                      <ResourceCard resource={r} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+                {bottomLoading && (
+                  <div className="mt-3 space-y-3">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <SkeletonResourceCard />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </AnimatePresence>
         </motion.div>

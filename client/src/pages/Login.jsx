@@ -76,16 +76,32 @@ const LoginForm = memo(() => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
             <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${!isValidEmail ? 'text-red-400' : 'text-text-muted/30'}`} />
-            <input type="email" placeholder="College email (@mitwpu.edu.in)" value={email}
-              onChange={handleEmailChange} required
-              className={`input pl-11 transition-all ${!isValidEmail ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : ''}`} />
+            <input 
+              id="email" 
+              name="email" 
+              type="email" 
+              placeholder="College email (@mitwpu.edu.in)" 
+              value={email}
+              onChange={handleEmailChange} 
+              required
+              autocomplete="username"
+              className={`input pl-11 transition-all ${!isValidEmail ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : ''}`} 
+            />
           </div>
 
           <div className="relative">
             <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/30 pointer-events-none" />
-            <input type={showPass ? 'text' : 'password'} placeholder="Password" value={password}
-              onChange={handlePasswordChange} required
-              className="input pl-11 pr-11" />
+            <input 
+              id="password" 
+              name="password" 
+              type={showPass ? 'text' : 'password'} 
+              placeholder="Password" 
+              value={password}
+              onChange={handlePasswordChange} 
+              required
+              autocomplete="current-password"
+              className="input pl-11 pr-11" 
+            />
             <button type="button" onClick={toggleShowPass}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/40 hover:text-text-main transition-colors">
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}

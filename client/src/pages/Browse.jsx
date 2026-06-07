@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
@@ -37,6 +37,13 @@ export default function Browse() {
   const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1)
   const [showFilters, setShowFilters] = useState(false)
 
+  const [topRefreshing, setTopRefreshing] = useState(false)
+  const [bottomLoading, setBottomLoading] = useState(false)
+
+  const isAppendingRef = useRef(false)
+  const lastScrollTriggerRef = useRef(0)
+  const lastTopRefreshTimeRef = useRef(0)
+
   const debouncedSearch = useDebounce(search)
 
   // Reactive URL-to-State Sync Effect
@@ -54,19 +61,38 @@ export default function Browse() {
   }, [searchParams])
 
   const fetchResources = useCallback(async () => {
-    setLoading(true)
+    const isAppending = isAppendingRef.current
+    if (!isAppending && !topRefreshing) {
+      setLoading(true)
+    }
     try {
       const params = new URLSearchParams({ page, limit: 12 })
       if (debouncedSearch) params.set('search', debouncedSearch)
       Object.entries(filters).forEach(([k, v]) => v && params.set(k, v))
       const { data } = await api.get(`/resources?${params}`)
-      setResources(data.resources)
+      
+      if (isAppending) {
+        setResources(prev => {
+          const existingIds = new Set(prev.map(r => r._id))
+          const newItems = data.resources.filter(r => !existingIds.has(r._id))
+          return [...prev, ...newItems]
+        })
+      } else {
+        setResources(data.resources)
+      }
       setPagination(data.pagination)
     } catch {}
-    finally { setLoading(false) }
-  }, [debouncedSearch, filters, page])
+    finally {
+      setLoading(false)
+      setBottomLoading(false)
+      setTopRefreshing(false)
+      isAppendingRef.current = false
+    }
+  }, [debouncedSearch, filters, page, topRefreshing])
 
-  useEffect(() => { fetchResources() }, [fetchResources])
+  useEffect(() => {
+    fetchResources()
+  }, [fetchResources])
 
   // Sync Search state to URL on debounced value changes
   useEffect(() => {
@@ -79,9 +105,54 @@ export default function Browse() {
         nextParams.delete('q')
       }
       nextParams.set('page', '1') // reset page on search
-      setSearchParams(nextParams)
+      setSearchParams(nextParams, { replace: true })
     }
   }, [debouncedSearch])
+
+  // Scroll listener effect for top refresh and bottom infinite scroll
+  useEffect(() => {
+    const mainContainer = document.querySelector('main')
+    if (!mainContainer) return
+
+    const handleScroll = () => {
+      const now = Date.now()
+      if (now - lastScrollTriggerRef.current < 200) return
+      lastScrollTriggerRef.current = now
+
+      const { scrollTop, scrollHeight, clientHeight } = mainContainer
+
+      // 1. Near Top Refresh (scroll is within 30px of top)
+      if (scrollTop < 30 && !topRefreshing && !loading && !bottomLoading) {
+        if (now - lastTopRefreshTimeRef.current >= 15000) {
+          lastTopRefreshTimeRef.current = now
+          setTopRefreshing(true)
+          
+          if (page === 1) {
+            fetchResources()
+          } else {
+            isAppendingRef.current = false
+            const params = new URLSearchParams(searchParams)
+            params.set('page', '1')
+            setSearchParams(params, { replace: true })
+          }
+        }
+      }
+
+      // 2. Near Bottom Load More (within 150px of bottom)
+      if (scrollTop + clientHeight >= scrollHeight - 150 && !bottomLoading && !topRefreshing && !loading) {
+        if (page < pagination.pages) {
+          setBottomLoading(true)
+          isAppendingRef.current = true
+          const params = new URLSearchParams(searchParams)
+          params.set('page', (page + 1).toString())
+          setSearchParams(params, { replace: true })
+        }
+      }
+    }
+
+    mainContainer.addEventListener('scroll', handleScroll)
+    return () => mainContainer.removeEventListener('scroll', handleScroll)
+  }, [topRefreshing, loading, bottomLoading, page, pagination, searchParams, setSearchParams, fetchResources])
 
   const setFilter = (k, v) => {
     const currentValue = filters[k]
@@ -94,23 +165,33 @@ export default function Browse() {
       nextParams.delete(k)
     }
     nextParams.set('page', '1')
-    setSearchParams(nextParams)
+    setSearchParams(nextParams, { replace: true })
   }
 
   const clearFilters = () => {
-    setSearchParams(new URLSearchParams())
+    setSearchParams(new URLSearchParams(), { replace: true })
   }
 
   const handlePageChange = (pageNum) => {
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('page', pageNum.toString())
-    setSearchParams(nextParams)
+    setSearchParams(nextParams, { replace: true })
   }
 
   const hasFilters = Object.values(filters).some(Boolean) || search
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto">
+    <div className="p-4 lg:p-6 max-w-7xl mx-auto relative">
+      {/* Floating Refreshing Pill */}
+      {topRefreshing && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-panel/90 backdrop-blur-xl border border-border shadow-2xl rounded-full">
+            <span className="w-4 h-4 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-text-muted font-medium">Refreshing...</span>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="font-display font-bold text-2xl text-text-main mb-1">Browse Resources</h1>
         <p className="text-text-muted text-sm">Discover study materials shared by your peers</p>
@@ -240,20 +321,14 @@ export default function Browse() {
                     <ResourceCard resource={r} />
                   </motion.div>
                 ))}
+                {bottomLoading && (
+                  [...Array(4)].map((_, i) => (
+                    <div key={`skeleton-${i}`} className="animate-pulse">
+                      <SkeletonResourceCard />
+                    </div>
+                  ))
+                )}
               </div>
-
-              {/* Pagination */}
-              {pagination.pages > 1 && (
-                <div className="flex justify-center gap-2 mt-8">
-                  {[...Array(pagination.pages)].map((_, i) => (
-                    <button key={i} onClick={() => handlePageChange(i + 1)}
-                      className={`w-9 h-9 rounded-xl text-sm font-medium transition-all
-                                  ${page === i + 1 ? 'bg-ink-500 text-white' : 'bg-panel border border-border text-text-muted hover:bg-panel/80'}`}>
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-              )}
             </>
       }
     </div>

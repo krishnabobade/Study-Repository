@@ -17,6 +17,11 @@ export default function CookieConsent() {
     setShow(false);
   };
 
+  const reject = () => {
+    localStorage.setItem('cookie_consent', 'rejected');
+    setShow(false);
+  };
+
   return (
     <AnimatePresence>
       {show && (
@@ -39,17 +44,16 @@ export default function CookieConsent() {
             <div className="flex items-center gap-3 w-full md:w-auto">
               <button 
                 onClick={accept} 
-                className="flex-1 md:flex-none px-8 py-2.5 bg-ink-500 hover:bg-ink-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-ink-500/20"
+                className="flex-1 md:flex-none px-6 py-2.5 bg-ink-500 hover:bg-ink-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-ink-500/20"
               >
-                Accept
+                Accept Cookies
               </button>
-              <Link 
-                to="/privacy-policy" 
-                onClick={() => setShow(false)} 
-                className="flex-1 md:flex-none px-6 py-2.5 bg-surface border border-border hover:bg-panel text-text-main text-center text-sm font-semibold rounded-xl transition-all"
+              <button 
+                onClick={reject} 
+                className="flex-1 md:flex-none px-6 py-2.5 bg-surface border border-border hover:bg-panel text-text-main text-sm font-semibold rounded-xl transition-all"
               >
-                Settings
-              </Link>
+                Reject Cookies
+              </button>
             </div>
           </div>
         </motion.div>

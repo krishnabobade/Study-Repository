@@ -166,26 +166,59 @@ const RegisterForm = () => {
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <div className="relative">
                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
-                    <input type="text" placeholder="First name *" value={form.firstName}
-                      onChange={set('firstName')} required className="input pl-11" />
+                    <input 
+                      id="firstName"
+                      name="firstName"
+                      type="text" 
+                      placeholder="First name *" 
+                      value={form.firstName}
+                      onChange={set('firstName')} 
+                      required 
+                      autocomplete="given-name"
+                      className="input pl-11" 
+                    />
                   </div>
                   <div className="relative">
                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
-                    <input type="text" placeholder="Surname *" value={form.surname}
-                      onChange={set('surname')} required className="input pl-11" />
+                    <input 
+                      id="surname"
+                      name="surname"
+                      type="text" 
+                      placeholder="Surname *" 
+                      value={form.surname}
+                      onChange={set('surname')} 
+                      required 
+                      autocomplete="family-name"
+                      className="input pl-11" 
+                    />
                   </div>
                 </div>
 
                 <div className="relative">
                   <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 ${form.email && !form.email.toLowerCase().endsWith('@mitwpu.edu.in') ? 'text-red-400' : 'text-text-muted'}`} />
-                  <input type="email" placeholder="College email (@mitwpu.edu.in) *" value={form.email}
-                    onChange={set('email')} required 
-                    className={`input pl-11 transition-all ${form.email && !form.email.toLowerCase().endsWith('@mitwpu.edu.in') ? 'border-red-500/50 focus:border-red-500' : ''}`} />
+                  <input 
+                    id="email"
+                    name="email"
+                    type="email" 
+                    placeholder="College email (@mitwpu.edu.in) *" 
+                    value={form.email}
+                    onChange={set('email')} 
+                    required 
+                    autocomplete="username"
+                    className={`input pl-11 transition-all ${form.email && !form.email.toLowerCase().endsWith('@mitwpu.edu.in') ? 'border-red-500/50 focus:border-red-500' : ''}`} 
+                  />
                 </div>
 
                 <div className="relative">
                   <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/40" />
-                  <select value={form.role} onChange={set('role')} required className="select pl-11">
+                  <select 
+                    id="role"
+                    name="role"
+                    value={form.role} 
+                    onChange={set('role')} 
+                    required 
+                    className="select pl-11"
+                  >
                     <option value="student">Student</option>
                     <option value="super_admin">Admin</option>
                   </select>
@@ -194,6 +227,8 @@ const RegisterForm = () => {
                 <div className="relative">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input 
+                    id="password"
+                    name="password"
                     type={showPass ? 'text' : 'password'} 
                     placeholder="Password *" 
                     value={form.password}
@@ -201,6 +236,7 @@ const RegisterForm = () => {
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     required 
+                    autocomplete="new-password"
                     className="input pl-11 pr-11" 
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
@@ -332,23 +368,42 @@ const RegisterForm = () => {
 
                 <div className="relative">
                   <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
-                  <input type="tel" placeholder="Phone Number" value={form.phone}
-                    onChange={set('phone')} maxLength={10} className="input pl-11" />
+                  <input 
+                    id="phone"
+                    name="phone"
+                    type="tel" 
+                    placeholder="Phone Number" 
+                    value={form.phone}
+                    onChange={set('phone')} 
+                    maxLength={10} 
+                    autocomplete="tel"
+                    className="input pl-11" 
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                   <div className="relative">
                     <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
                     <input 
+                      id="dob"
+                      name="dob"
                       type="date" 
                       value={form.dob} 
                       onChange={set('dob')} 
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                       required
+                      autocomplete="bday"
                       className="input pl-11 text-text-muted" 
                     />
                   </div>
-                  <select value={form.gender} onChange={set('gender')} className="select">
+                  <select 
+                    id="gender"
+                    name="gender"
+                    value={form.gender} 
+                    onChange={set('gender')} 
+                    autocomplete="sex"
+                    className="select"
+                  >
                     <option value="Prefer not to say">Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
