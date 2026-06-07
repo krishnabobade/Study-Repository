@@ -62,7 +62,7 @@ function Sidebar({ mobile = false, user, setMobileMenuOpen, setLogoutConfirmOpen
           return true;
         }).map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to}
-            onClick={() => mobile && setMobileMenuOpen(false)}
+            onClick={() => setMobileMenuOpen?.(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
                ${isActive
@@ -115,7 +115,7 @@ function Sidebar({ mobile = false, user, setMobileMenuOpen, setLogoutConfirmOpen
             <NavLink
               key={link.label}
               to={link.to}
-              onClick={() => mobile && setMobileMenuOpen(false)}
+              onClick={() => setMobileMenuOpen?.(false)}
               className="text-xs text-text-muted hover:text-text-main px-2 py-1.5 rounded-lg hover:bg-panel transition-colors"
             >
               {link.label}
@@ -165,6 +165,12 @@ export default function DashboardLayout() {
   const notifBellRef = useRef(null)
   const notifPanelRef = useRef(null)
   const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false)
+
+  // Automatically close sidebar and notifications when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false)
+    setNotifOpen(false)
+  }, [location.pathname])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -430,6 +436,7 @@ export default function DashboardLayout() {
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
+              onTouchStart={() => setMobileMenuOpen(false)}
               onTouchMove={(e) => e.preventDefault()}
               className="lg:hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
               style={{ touchAction: 'none' }}
