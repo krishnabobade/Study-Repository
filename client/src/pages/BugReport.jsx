@@ -163,9 +163,6 @@ ${censorText(formData.description)}`;
 
       {/* Top Header & Guideline Info */}
       <div className="text-center space-y-5 max-w-2xl mx-auto">
-        <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_4px_20px_rgba(239,68,68,0.15)]">
-          <Bug className="text-red-500 animate-pulse" size={24} />
-        </div>
         <div className="space-y-2">
           <h1 className="font-display font-bold text-3xl sm:text-4xl text-text-main tracking-tight">Report a Bug</h1>
           <p className="text-text-muted text-sm max-w-md mx-auto leading-relaxed">
