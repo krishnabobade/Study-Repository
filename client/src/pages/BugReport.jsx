@@ -144,112 +144,101 @@ ${censorText(formData.description)}`;
     <motion.div 
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto w-full space-y-6"
+      className="p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto w-full space-y-8 animate-fadeUp"
     >
       <SEO title="Report a Bug | Study Repository" />
 
-      <button 
-        onClick={() => navigate(-1)} 
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-main transition-colors group cursor-pointer"
-        aria-label="Go back"
-      >
-        <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> Back
-      </button>
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-main transition-colors group cursor-pointer"
+          aria-label="Go back"
+        >
+          <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> Back
+        </button>
+        <span className="text-xs text-text-muted hidden sm:inline">
+          Need urgent help? <a href="mailto:krishnabobade1313@gmail.com" className="text-ink-400 hover:text-ink-300 transition-colors">krishnabobade1313@gmail.com</a>
+        </span>
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Info & Guideline Card */}
-        <div className="w-full md:w-1/3 space-y-6">
-          <div className="card p-6 relative overflow-hidden bg-gradient-to-b from-panel to-panel/50">
-            {/* Subtle glow */}
-            <div className="absolute -top-12 -left-12 w-36 h-36 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
+      {/* Top Header & Guideline Info */}
+      <div className="text-center space-y-5 max-w-2xl mx-auto">
+        <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_4px_20px_rgba(239,68,68,0.15)]">
+          <Bug className="text-red-500 animate-pulse" size={24} />
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-display font-bold text-3xl sm:text-4xl text-text-main tracking-tight">Report a Bug</h1>
+          <p className="text-text-muted text-sm max-w-md mx-auto leading-relaxed">
+            Help us improve Study Repository. Describe the issue in detail, and our admin team will investigate immediately.
+          </p>
+        </div>
 
-            <div className="relative z-10 space-y-4">
-              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center shrink-0">
-                <Bug className="text-red-500" size={24} />
+        {/* Step-by-Step Guideline Blocks */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-left">
+          <div className="bg-panel/40 border border-border/50 rounded-2xl p-4 space-y-1 shadow-sm hover:border-ink-500/20 transition-colors">
+            <span className="text-xs font-bold text-ink-400 uppercase tracking-wider">01. Summary</span>
+            <p className="text-[11px] text-text-muted leading-relaxed">Be descriptive and summarize the issue clearly.</p>
+          </div>
+          <div className="bg-panel/40 border border-border/50 rounded-2xl p-4 space-y-1 shadow-sm hover:border-ink-500/20 transition-colors">
+            <span className="text-xs font-bold text-ink-400 uppercase tracking-wider">02. Steps</span>
+            <p className="text-[11px] text-text-muted leading-relaxed">Provide exact steps to reproduce the bug if possible.</p>
+          </div>
+          <div className="bg-panel/40 border border-border/50 rounded-2xl p-4 space-y-1 shadow-sm hover:border-ink-500/20 transition-colors">
+            <span className="text-xs font-bold text-ink-400 uppercase tracking-wider">03. Environment</span>
+            <p className="text-[11px] text-text-muted leading-relaxed">Confirm your browser and device details below.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Card (Below) */}
+      <div className="max-w-3xl mx-auto w-full">
+        <form onSubmit={handleSubmit} className="card p-6 md:p-8 space-y-6 relative overflow-hidden bg-gradient-to-b from-panel to-panel/50 hover:shadow-lg hover:shadow-ink-500/5 transition-all duration-300">
+          {/* Ambient background glow */}
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-ink-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+          {/* Grid 1: Name and Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
+                Full Name
+              </label>
+              <div className="relative group">
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Your Name"
+                  className="input pl-10"
+                />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
               </div>
-              <div>
-                <h1 className="font-display font-bold text-2xl text-text-main">Report a Bug</h1>
-                <p className="text-text-muted text-xs mt-1 leading-relaxed">
-                  Help us improve Study Repository. Describe the issue in detail, and our admin team will investigate.
-                </p>
-              </div>
+            </div>
 
-              <div className="border-t border-border pt-4 space-y-3">
-                <h3 className="text-sm font-semibold text-text-main">Reporting Guidelines</h3>
-                <ul className="text-xs text-text-muted space-y-2.5">
-                  <li className="flex gap-2">
-                    <span className="text-red-500 font-bold">•</span>
-                    <span>Be descriptive and summarize the issue clearly.</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-red-500 font-bold">•</span>
-                    <span>Provide steps to reproduce the bug.</span>
-                  </li>
-                  <li className="flex gap-2">
-                    <span className="text-red-500 font-bold">•</span>
-                    <span>Confirm your browser and device details are correct.</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="border-t border-border pt-4">
-                <p className="text-[11px] text-text-muted">
-                  Need urgent support? Contact us:
-                </p>
-                <a href="mailto:krishnabobade1313@gmail.com" className="text-xs text-ink-400 hover:text-ink-300 font-medium transition-colors mt-1 block">
-                  krishnabobade1313@gmail.com
-                </a>
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
+                Email Address
+              </label>
+              <div className="relative group">
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="your.email@example.com"
+                  className="input pl-10"
+                />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Contact Form Card */}
-        <div className="flex-1">
-          <form onSubmit={handleSubmit} className="card p-6 md:p-8 space-y-5 relative overflow-hidden">
-            {/* Ambient background glow */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-ink-500/10 blur-[80px] rounded-full pointer-events-none" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 relative z-10">
-              {/* Name */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Full Name
-                </label>
-                <div className="relative group">
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your Name"
-                    className="input pl-10"
-                  />
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Email Address
-                </label>
-                <div className="relative group">
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your.email@example.com"
-                    className="input pl-10"
-                  />
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
-                </div>
-              </div>
-            </div>
-
+          {/* Grid 2: Subject and Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
             {/* Subject */}
-            <div className="space-y-1.5 relative z-10">
+            <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Subject
               </label>
@@ -267,7 +256,7 @@ ${censorText(formData.description)}`;
             </div>
 
             {/* Category */}
-            <div className="space-y-1.5 relative z-10">
+            <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
                 Category
               </label>
@@ -287,90 +276,91 @@ ${censorText(formData.description)}`;
                 <HelpCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
               </div>
             </div>
+          </div>
 
-            {/* Description */}
-            <div className="space-y-1.5 relative z-10">
+          {/* Description */}
+          <div className="space-y-1.5 relative z-10">
+            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Issue Description
+            </label>
+            <div className="relative group">
+              <textarea
+                required
+                rows={4}
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Provide a detailed description of the bug and steps to reproduce..."
+                className="input pl-10 resize-none h-32 py-3"
+              ></textarea>
+              <Bug className="absolute left-3.5 top-4 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
+            </div>
+          </div>
+
+          {/* Browser & Device */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+            <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
-                Issue Description
+                Browser
               </label>
               <div className="relative group">
-                <textarea
-                  required
-                  rows={4}
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Provide a detailed description of the bug and steps to reproduce..."
-                  className="input pl-10 resize-none h-32 py-3"
-                ></textarea>
-                <Bug className="absolute left-3.5 top-4 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
+                <select
+                  value={formData.browser}
+                  onChange={e => setFormData({ ...formData, browser: e.target.value })}
+                  className="select pl-10"
+                >
+                  <option value="Chrome">Chrome</option>
+                  <option value="Safari">Safari</option>
+                  <option value="Firefox">Firefox</option>
+                  <option value="Edge">Edge</option>
+                  <option value="Other">Other</option>
+                </select>
+                <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
               </div>
             </div>
 
-            {/* Browser & Device */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 relative z-10">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Browser
-                </label>
-                <div className="relative group">
-                  <select
-                    value={formData.browser}
-                    onChange={e => setFormData({ ...formData, browser: e.target.value })}
-                    className="select pl-10"
-                  >
-                    <option value="Chrome">Chrome</option>
-                    <option value="Safari">Safari</option>
-                    <option value="Firefox">Firefox</option>
-                    <option value="Edge">Edge</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Device
-                </label>
-                <div className="relative group">
-                  <select
-                    value={formData.device}
-                    onChange={e => setFormData({ ...formData, device: e.target.value })}
-                    className="select pl-10"
-                  >
-                    <option value="Desktop">Desktop</option>
-                    <option value="Mobile">Mobile</option>
-                    <option value="Tablet">Tablet</option>
-                  </select>
-                  <Laptop className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
-                </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">
+                Device
+              </label>
+              <div className="relative group">
+                <select
+                  value={formData.device}
+                  onChange={e => setFormData({ ...formData, device: e.target.value })}
+                  className="select pl-10"
+                >
+                  <option value="Desktop">Desktop</option>
+                  <option value="Mobile">Mobile</option>
+                  <option value="Tablet">Tablet</option>
+                </select>
+                <Laptop className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-ink-400 transition-colors" size={18} />
               </div>
             </div>
+          </div>
 
-            <div className="flex gap-4 pt-4 border-t border-border/50 relative z-10">
-              <button 
-                type="button"
-                onClick={() => navigate(-1)}
-                className="btn-secondary flex-1 justify-center py-3 text-base cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="btn-primary flex-1 justify-center py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Send size={18} /> Submit Report
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-4 border-t border-border/50 relative z-10">
+            <button 
+              type="button"
+              onClick={() => navigate(-1)}
+              className="btn-secondary flex-1 justify-center py-3 text-base cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="btn-primary flex-1 justify-center py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Send size={18} /> Submit Report
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </motion.div>
   );
