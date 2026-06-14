@@ -7,8 +7,8 @@ export default {
         'xs': '420px',
       },
       fontFamily: {
-        sans: ['"DM Sans"', 'sans-serif'],
-        display: ['"Syne"', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
