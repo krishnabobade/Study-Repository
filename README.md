@@ -43,8 +43,10 @@ npm install
 You'll need to create a `.env` file in the `server` folder. Copy the `.env.example` file and fill in your details:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_uri_here
+MONGO_URI=your_mongodb_uri_here
 JWT_SECRET=make_up_a_secret_key
+ADMIN_EMAIL=your_admin_email@mitwpu.edu.in
+SEED_ADMIN_PASSWORD=your_admin_password
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
