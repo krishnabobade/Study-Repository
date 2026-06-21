@@ -22,6 +22,7 @@ const NAV = [
   { to: '/browse',    icon: Search,          label: 'Browse' },
   { to: '/upload',    icon: Upload,          label: 'Upload' },
   { to: '/my-files',  icon: FolderOpen,      label: 'My Files' },
+  { to: '/study-rooms', icon: MessageSquare, label: 'Study Rooms' },
   { to: '/admin/users', icon: Users,         label: 'Manage Users',    adminOnly: true },
   { to: '/admin/resources', icon: FileText,  label: 'Manage Files',    adminOnly: true },
   { to: '/feedback',  icon: MessageSquare,   label: 'User Feedback',   adminOnly: true },

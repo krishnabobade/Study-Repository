@@ -172,6 +172,9 @@ module.exports = {
    * Notify the trending system of activity to trigger debounced recalculation and broadcast
    */
   notifyActivity: () => {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
     if (updateTimer) return;
 
     updateTimer = setTimeout(async () => {

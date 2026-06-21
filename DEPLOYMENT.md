@@ -16,15 +16,29 @@ Since we let faculty upload PDFs and images, we need a place to put them that is
 2. Go to the dashboard and copy your Cloud Name, API Key, and API Secret.
 
 ## 3. Deploying the Backend
-I recommend using [Render](https://render.com) for the Node.js API because it's pretty straightforward.
+I recommend using [Render](https://render.com) or [Koyeb](https://www.koyeb.com) for the Node.js API.
+
+### Option A: Render (Standard Setup)
 1. Connect your GitHub account to Render and create a new "Web Service".
 2. Pick this repository.
 3. For the **Root Directory**, type `server`.
 4. **Build Command**: `npm install`
-5. **Start Command**: `npm start` (Make sure your `package.json` in the server folder has a start script pointing to `node server.js`).
-6. **Environment Variables**: This is the most important part. Copy all the variables from your local `.env` file into Render's environment variable section. Make sure `NODE_ENV` is set to `production`.
+5. **Start Command**: `npm start`
+6. **Environment Variables**: Copy all variables from your local `.env` file. Set `NODE_ENV` to `production`.
 
-Once Render finishes building, it'll give you a live URL (something like `https://studyrepo-api.onrender.com`). Copy that, you'll need it for the frontend!
+> [!WARNING]
+> **Render Free Tier Limits**: Render limits free usage to 750 hours/month. If the keeping-awake cron or keep-alive triggers run constantly, you will exhaust your monthly limits and Render will suspend the service.
+> By default, the self-ping keep-alive is disabled unless you explicitly set `ENABLE_KEEP_ALIVE=true` in Render's Environment Variables. If you don't use it, the service will go to sleep after 15 minutes of inactivity (causing a 50-second spin-up time on subsequent requests), but it prevents account suspension.
+
+### Option B: Koyeb (24/7 Free Alternative)
+If you want to host the backend without cold starts and without exhausting limits, use [Koyeb](https://www.koyeb.com):
+1. Sign up for a free Koyeb account.
+2. Select Web Service and link the GitHub repository.
+3. Set the Builder type to **Node.js** or **Docker** and build path to `server`.
+4. Enter the required environment variables.
+5. Deploy. Koyeb doesn't put services to sleep on its free tier, avoiding the 50-second startup delay.
+
+Once your backend host finishes building, it'll give you a live URL. Copy that for the frontend configuration!
 
 ## 4. Deploying the Frontend
 [Vercel](https://vercel.com) is the easiest way to host the React/Vite frontend.

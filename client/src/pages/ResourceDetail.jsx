@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Download, Eye, Calendar, User, ArrowLeft,
-  Star, Send, ExternalLink, Tag, ThumbsUp, ThumbsDown, Trash2
+  Star, Send, ExternalLink, Tag, ThumbsUp, ThumbsDown, Trash2, Sparkles
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../services/api'
@@ -198,6 +198,33 @@ export default function ResourceDetail() {
             {resource.tags.map(t => (
               <span key={t} className="badge bg-panel border border-border text-text-muted">{censorText(t)}</span>
             ))}
+          </div>
+        )}
+
+        {/* AI Insights Section */}
+        {resource.aiSummary && (
+          <div className="p-4 mb-5 rounded-2xl bg-gradient-to-r from-ink-500/[0.07] to-purple-500/[0.02] border border-ink-500/20 shadow-[0_4px_20px_rgba(101,88,245,0.05)] relative overflow-hidden group">
+            {/* Subtle glow border effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-ink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={16} className="text-ink-400 animate-pulse animate-duration-1000" />
+              <h3 className="text-xs font-bold text-ink-300 uppercase tracking-widest">AI Insights & Summary</h3>
+            </div>
+            <p className="text-sm text-text-main/90 leading-relaxed font-normal mb-3">
+              {censorText(resource.aiSummary)}
+            </p>
+            
+            {resource.autoTags?.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-bold text-text-muted/60 uppercase tracking-wider">AI Tags:</span>
+                {resource.autoTags.map(t => (
+                  <span key={t} className="text-[11px] px-2 py-0.5 rounded-lg bg-ink-500/10 text-ink-300 border border-ink-500/10 font-medium">
+                    #{censorText(t)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

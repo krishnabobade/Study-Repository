@@ -142,6 +142,9 @@ app.use('/api/feedback', feedbackRoutes);
 const trendingRoutes = require('./routes/trending.routes');
 app.use('/api/trending', trendingRoutes);
 
+const roomRoutes = require('./routes/room.routes');
+app.use('/api/rooms', roomRoutes);
+
 // Health check — minimal response, no internal state disclosed
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
@@ -180,7 +183,7 @@ if (require.main === module) {
 
   // Self-Ping Keep-Alive Mechanism for Render Free Tier (Prevents 15-min sleep)
   const selfUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
-  if (selfUrl) {
+  if (selfUrl && process.env.ENABLE_KEEP_ALIVE === 'true') {
     setInterval(() => {
       const https = require('https');
       https.get(`${selfUrl}/api/health`, (resp) => {

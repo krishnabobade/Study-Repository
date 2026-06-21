@@ -29,6 +29,8 @@ const HelpCenter = lazy(() => import('./pages/HelpCenter'))
 const BugReport = lazy(() => import('./pages/BugReport'))
 const FeedbackList = lazy(() => import('./pages/FeedbackList'))
 const Assignments = lazy(() => import('./pages/Assignments'))
+const StudyRooms = lazy(() => import('./pages/StudyRooms'))
+
 
 // Admin Pages
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'))
@@ -134,6 +136,8 @@ export default function App() {
             <Route path="bug-report"       element={<BugReport />} />
             <Route path="feedback"         element={<AdminRoute><FeedbackList /></AdminRoute>} />
             <Route path="assignments"      element={<Assignments />} />
+            <Route path="study-rooms"      element={<StudyRooms />} />
+
 
             {/* Admin Only Routes */}
             <Route path="admin/users"      element={<AdminRoute><UserManagement /></AdminRoute>} />

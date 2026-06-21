@@ -6,6 +6,7 @@ const { uploadStream } = require('../utils/cloudinary');
 const { uploadToS3, getPresignedDownloadUrl, deleteFromS3 } = require('../utils/s3');
 const path = require('path');
 const logger = require('../config/logger');
+const aiService = require('../services/ai.service');
 
 exports.getAllResources = async (req, res) => {
   try {
@@ -223,13 +224,16 @@ exports.createResource = async (req, res) => {
       fileUrl = cloudinaryResult.secure_url;
       filePublicId = cloudinaryResult.public_id;
     }
+    // Call AI Summarizer service to get real summary and autoTags
+    const aiResult = await aiService.generateSummaryAndTags(req.file.buffer, req.file.mimetype, {
+      title,
+      subject,
+      category,
+      course
+    });
 
-    // AI Intelligence tags (Simulated NLP keyword extraction from title & subject)
-    const stopWords = ['the', 'and', 'for', 'with', 'intro', 'basics', 'of', 'in', 'part'];
-    const autoTags = `${title} ${subject} ${category}`.toLowerCase().split(/[\s,-]+/)
-      .filter(w => w.length > 3 && !stopWords.includes(w));
-    
-    const aiSummary = `This is a ${category} document covering topics on ${subject}. Automatically processed for ${course} students.`;
+    const aiSummary = aiResult.summary;
+    const autoTags = aiResult.tags;
 
     const documentId = `DOC-${Date.now().toString().slice(-6)}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
 
