@@ -7,8 +7,9 @@ export default {
         'xs': '420px',
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        display: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['var(--font-body)', "'Inter'", '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        display: ['var(--font-heading)', "'Playfair Display'", 'Georgia', 'serif'],
+        serif: ['var(--font-heading)', "'Playfair Display'", 'Georgia', 'serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
