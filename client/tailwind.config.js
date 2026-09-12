@@ -13,6 +13,11 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
+        primary: '#007AFF',
+        success: '#34C759',
+        warning: '#FF9500',
+        danger:  '#FF3B30',
+        darkSurface: '#1C1C1E',
         surface: 'var(--surface)',
         panel:   'var(--panel)',
         card:    'var(--card)',
