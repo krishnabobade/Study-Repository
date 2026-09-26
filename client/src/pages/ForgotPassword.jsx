@@ -14,7 +14,6 @@ export default function ForgotPassword() {
   const [resetToken, setResetToken] = useState('');
   const [whatsappUrl, setWhatsappUrl] = useState(null);
   const [registeredPhone, setRegisteredPhone] = useState(null);
-  const [serverOtpCode, setServerOtpCode] = useState(null);
   const [emailSentStatus, setEmailSentStatus] = useState(true);
   
   // Password Reset State
@@ -48,7 +47,6 @@ export default function ForgotPassword() {
       toast.success(res.data.message || 'OTP generated successfully!');
       if (res.data.whatsappUrl) setWhatsappUrl(res.data.whatsappUrl);
       if (res.data.phone) setRegisteredPhone(res.data.phone);
-      if (res.data.otpCode) setServerOtpCode(res.data.otpCode);
       if (res.data.emailSent !== undefined) setEmailSentStatus(res.data.emailSent);
       
       setStep('otp');
@@ -92,13 +90,6 @@ export default function ForgotPassword() {
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
   };
 
-  const autoFillCode = (code) => {
-    if (!code || code.length !== 6) return;
-    const digits = code.split('');
-    setOtp(digits);
-    toast.success('OTP code auto-filled!');
-  };
-
   // Handle OTP Verification
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
@@ -124,10 +115,9 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       const res = await api.post('/auth/resend-otp', { email });
-      toast.success(res.data.message || 'A new OTP has been generated.');
+      toast.success(res.data.message || 'A new OTP has been dispatched via WhatsApp.');
       if (res.data.whatsappUrl) setWhatsappUrl(res.data.whatsappUrl);
       if (res.data.phone) setRegisteredPhone(res.data.phone);
-      if (res.data.otpCode) setServerOtpCode(res.data.otpCode);
       if (res.data.emailSent !== undefined) setEmailSentStatus(res.data.emailSent);
       setCooldown(60);
     } catch (err) {
@@ -265,35 +255,23 @@ export default function ForgotPassword() {
 
                 {/* WhatsApp Button Banner */}
                 {whatsappUrl && (
-                  <div className="mb-5 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
-                    <p className="text-xs font-semibold text-emerald-400 flex items-center justify-center gap-1.5">
-                      <MessageSquare size={14} /> Send OTP via WhatsApp to {registeredPhone || 'your registered number'}
+                  <div className="mb-5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2.5">
+                    <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-400">
+                      <MessageSquare size={16} />
+                      <span>WhatsApp OTP Dispatcher</span>
+                    </div>
+                    <p className="text-xs text-text-muted">
+                      Click below to receive your OTP on WhatsApp via <span className="font-semibold text-text-main">+91 9689652498</span>.
                     </p>
                     <a
                       href={whatsappUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
                     >
-                      <MessageSquare size={15} />
-                      Open WhatsApp to Get OTP
+                      <MessageSquare size={16} />
+                      Open WhatsApp for OTP
                     </a>
-                  </div>
-                )}
-
-                {/* Direct OTP Helper Banner */}
-                {serverOtpCode && (
-                  <div 
-                    onClick={() => autoFillCode(serverOtpCode)}
-                    className="mb-5 p-3 rounded-xl bg-ink-500/10 border border-ink-500/20 cursor-pointer hover:bg-ink-500/20 transition-all text-center group"
-                    title="Click to auto-fill OTP"
-                  >
-                    <p className="text-[11px] text-text-muted uppercase font-mono tracking-wider mb-1">Generated Verification Code</p>
-                    <div className="flex items-center justify-center gap-2 font-mono text-lg font-bold text-ink-300">
-                      <span>{serverOtpCode}</span>
-                      <Copy size={14} className="group-hover:scale-110 transition-transform text-ink-400" />
-                    </div>
-                    <p className="text-[10px] text-ink-400/80 mt-1">Tap code to auto-fill instantly</p>
                   </div>
                 )}
                 

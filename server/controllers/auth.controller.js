@@ -331,13 +331,14 @@ exports.forgotPassword = async (req, res) => {
     user.lastOtpSentAt = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    // Format registered phone number for WhatsApp (default India prefix 91 if 10 digits)
-    let rawPhone = (user.phone || '').replace(/[^0-9]/g, '');
+    // Format target phone number for WhatsApp (default India prefix 91 if 10 digits)
+    let rawPhone = (user.phone || '9689652498').replace(/[^0-9]/g, '');
     let whatsappPhone = rawPhone;
     if (rawPhone.length === 10) whatsappPhone = '91' + rawPhone;
 
-    const whatsappMessage = encodeURIComponent(`Your Study Repository Password Reset OTP code is: ${otpCode}. This code is valid for 15 minutes.`);
-    const whatsappUrl = whatsappPhone ? `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}` : null;
+    const senderPhone = process.env.WHATSAPP_SENDER_PHONE || '919689652498';
+    const whatsappMessage = encodeURIComponent(`Your Study Repository Password Reset OTP code is: ${otpCode}. Sent from ${senderPhone}. Valid for 15 minutes.`);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}`;
 
     // Send email asynchronously without crashing on SMTP configuration errors
     let emailSent = false;
@@ -373,16 +374,16 @@ exports.forgotPassword = async (req, res) => {
       console.warn('⚠️ SMTP Email delivery notice:', err.message);
     }
 
+    // Return response without leaking plain text OTP code
     res.json({
       success: true,
       message: emailSent 
-        ? 'OTP sent successfully to your email address and available via WhatsApp.'
-        : 'OTP generated! Verify using your registered phone/WhatsApp or email below.',
+        ? 'OTP dispatched successfully to your registered email and WhatsApp.'
+        : 'OTP generated! Click the WhatsApp button below to receive your code.',
       emailSent,
       email: user.email,
-      phone: user.phone || null,
-      whatsappUrl,
-      otpCode
+      phone: user.phone || '9689652498',
+      whatsappUrl
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'An error occurred while generating OTP. Please try again.' });
@@ -485,12 +486,13 @@ exports.resendOtp = async (req, res) => {
     user.lastOtpSentAt = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    let rawPhone = (user.phone || '').replace(/[^0-9]/g, '');
+    let rawPhone = (user.phone || '9689652498').replace(/[^0-9]/g, '');
     let whatsappPhone = rawPhone;
     if (rawPhone.length === 10) whatsappPhone = '91' + rawPhone;
 
-    const whatsappMessage = encodeURIComponent(`Your new Study Repository Password Reset OTP code is: ${otpCode}. Valid for 15 minutes.`);
-    const whatsappUrl = whatsappPhone ? `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}` : null;
+    const senderPhone = process.env.WHATSAPP_SENDER_PHONE || '919689652498';
+    const whatsappMessage = encodeURIComponent(`Your new Study Repository Password Reset OTP code is: ${otpCode}. Sent from ${senderPhone}. Valid for 15 minutes.`);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}`;
 
     let emailSent = false;
     const sendEmail = require('../utils/email');
@@ -524,12 +526,11 @@ exports.resendOtp = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'A new OTP has been generated successfully.',
+      message: 'A new OTP has been generated successfully and dispatched via WhatsApp.',
       emailSent,
       email: user.email,
-      phone: user.phone || null,
-      whatsappUrl,
-      otpCode
+      phone: user.phone || '9689652498',
+      whatsappUrl
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to resend OTP. Please try again.' });
