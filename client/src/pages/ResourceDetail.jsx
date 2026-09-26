@@ -11,6 +11,7 @@ import useAuthStore from '../store/authStore'
 import { FileTypeBadge, CategoryBadge, Stars, timeAgo, formatSize, forceDownloadBlob } from '../components/shared/utils'
 import SkeletonBase, { SkeletonTitle, SkeletonText, SkeletonImage, SkeletonAvatar, SkeletonButton } from '../components/shared/Skeleton'
 import { censorText } from '../lib/profanity'
+import DocumentViewer from '../components/shared/DocumentViewer'
 
 export default function ResourceDetail() {
   const { id } = useParams()
@@ -22,6 +23,7 @@ export default function ResourceDetail() {
   const [newRating,  setNewRating]  = useState(5)
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -269,6 +271,12 @@ export default function ResourceDetail() {
         {/* Actions */}
         <div className="flex flex-wrap gap-3 mt-5">
           <button 
+            onClick={() => setShowPreview(true)}
+            className="btn-secondary flex-1 justify-center py-3 flex items-center gap-2 border-ink-500/30 text-ink-300 hover:bg-ink-500/10">
+            <Eye size={16} /> Preview Document
+          </button>
+          
+          <button 
             onClick={handleDownloadClick}
             className="btn-primary flex-1 justify-center py-3 flex items-center gap-2">
             <Download size={16} /> Download
@@ -280,11 +288,19 @@ export default function ResourceDetail() {
               <Trash2 size={16} />
             </button>
           )}
-
-
-
         </div>
       </motion.div>
+
+      {/* Document Preview Modal */}
+      {showPreview && (
+        <DocumentViewer
+          url={resource.fileUrl}
+          type={resource.fileType}
+          title={resource.title}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownloadClick}
+        />
+      )}
 
 
       {/* Comments */}

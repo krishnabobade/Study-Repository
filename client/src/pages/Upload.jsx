@@ -7,6 +7,7 @@ import api from '../services/api'
 import useAuthStore from '../store/authStore'
 import { MITWPU_SCHOOLS } from '../data/mitwpu'
 import { censorText } from '../lib/profanity'
+import DocumentViewer from '../components/shared/DocumentViewer'
 
 const COURSES   = ['BCA','MCA','B.Sc CS','B.Sc IT','B.Tech CS','B.Tech IT','MBA','Other']
 const CATEGORIES = [
@@ -25,6 +26,7 @@ export default function Upload() {
   const [dragOver, setDragOver] = useState(false)
   const [progress, setProgress] = useState(0)
   const [status, setStatus]   = useState('idle') // idle | uploading | success | error
+  const [showPreview, setShowPreview] = useState(false)
   const inputRef = useRef()
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
@@ -200,8 +202,15 @@ export default function Upload() {
                     </div>
                     {status !== 'uploading' && (
                       <div className="flex items-center gap-1">
-                        <button type="button" onClick={() => { setFile(null); setStatus('idle') }}
-                          className="p-2 hover:bg-panel rounded-lg text-text-muted hover:text-text-main transition-colors">
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setShowPreview(true); }}
+                          className="p-2 hover:bg-panel rounded-lg text-text-muted hover:text-text-main transition-colors flex items-center gap-1 text-xs font-medium"
+                          title="Preview selected file">
+                          <Eye size={16} />
+                          <span className="hidden sm:inline">Preview</span>
+                        </button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); setStatus('idle'); }}
+                          className="p-2 hover:bg-panel rounded-lg text-text-muted hover:text-text-main transition-colors"
+                          title="Remove file">
                           <X size={16} />
                         </button>
                       </div>
@@ -211,6 +220,16 @@ export default function Upload() {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Document Preview Modal */}
+            {showPreview && file && (
+              <DocumentViewer
+                url={URL.createObjectURL(file)}
+                type={form.fileType || file.type}
+                title={form.title || file.name}
+                onClose={() => setShowPreview(false)}
+              />
+            )}
 
             {/* Metadata */}
             <div className="card p-5 space-y-4">

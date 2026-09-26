@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, Search, Trash2, CheckCircle, XCircle, ExternalLink, ShieldAlert } from 'lucide-react';
+import { FileText, Search, Trash2, CheckCircle, XCircle, ExternalLink, ShieldAlert, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { SkeletonTable } from '../../components/shared/Skeleton.jsx';
-import { FileTypeBadge, CategoryBadge } from '../../components/shared/utils.jsx';
+import { FileTypeBadge, CategoryBadge, forceDownloadBlob } from '../../components/shared/utils.jsx';
+import DocumentViewer from '../../components/shared/DocumentViewer.jsx';
 
 export default function ResourceManagement() {
   const [resources, setResources] = useState([]);
@@ -13,6 +14,7 @@ export default function ResourceManagement() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [previewResource, setPreviewResource] = useState(null);
 
   useEffect(() => {
     fetchResources();
@@ -209,6 +211,15 @@ export default function ResourceManagement() {
                       {r.isApproved ? <XCircle size={16} /> : <CheckCircle size={16} />}
                     </button>
 
+                    {/* Preview Button */}
+                    <button 
+                      onClick={() => setPreviewResource(r)}
+                      className="p-2 bg-ink-500/10 border border-ink-500/20 text-ink-300 hover:bg-ink-500/20 rounded-xl transition-all"
+                      title="Preview Document"
+                    >
+                      <Eye size={16} />
+                    </button>
+
                     {/* Open Original */}
                     <a 
                       href={r.fileUrl} 
@@ -235,6 +246,26 @@ export default function ResourceManagement() {
           </tbody>
         </table>
       </div>
+
+      {/* Document Preview Modal */}
+      {previewResource && (
+        <DocumentViewer
+          url={previewResource.fileUrl}
+          type={previewResource.fileType}
+          title={previewResource.title}
+          onClose={() => setPreviewResource(null)}
+          onDownload={async () => {
+            const toastId = toast.loading('Preparing download...');
+            const success = await forceDownloadBlob(previewResource.fileUrl, previewResource.title, previewResource.fileType);
+            if (success) {
+              api.post(`/resources/${previewResource._id}/download`).catch(() => {});
+              toast.success('Download complete!', { id: toastId });
+            } else {
+              toast.dismiss(toastId);
+            }
+          }}
+        />
+      )}
 
       <AnimatePresence>
         {confirmDelete && (

@@ -6,14 +6,17 @@ import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { useState } from 'react'
 import useAuthStore from '../../store/authStore'
+import DocumentViewer from './DocumentViewer'
 
 export default function ResourceCard({ resource, compact = false }) {
   const { refreshUser } = useAuthStore()
   const [localViews, setLocalViews] = useState(resource.views)
   const [localDownloads, setLocalDownloads] = useState(resource.downloads)
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleDownloadClick = async (e) => {
     e.preventDefault()
+    e.stopPropagation()
     const toastId = toast.loading('Preparing download...')
     const success = await forceDownloadBlob(resource.fileUrl, resource.title, resource.fileType)
     if (success) {
@@ -105,16 +108,36 @@ export default function ResourceCard({ resource, compact = false }) {
         </div>
       </Link>
 
-      <div className="mt-3">
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowPreview(true);
+          }}
+          className="flex-1 py-2.5 md:py-2 rounded-xl bg-panel hover:bg-surface border border-border hover:border-ink-500/30
+                     text-[13px] md:text-xs font-medium text-text-muted hover:text-text-main flex items-center justify-center gap-1.5 transition-all duration-200">
+          <Eye size={14} className="md:w-[13px] md:h-[13px]" />
+          Preview
+        </button>
         <button 
           onClick={handleDownloadClick}
-          className="w-full py-3 md:py-2 rounded-xl bg-ink-500/10 hover:bg-ink-500/20 border border-ink-500/20 hover:border-ink-500/40
+          className="flex-1 py-2.5 md:py-2 rounded-xl bg-ink-500/10 hover:bg-ink-500/20 border border-ink-500/20 hover:border-ink-500/40
                      text-[13px] md:text-xs font-medium text-ink-300 flex items-center justify-center gap-1.5 transition-all duration-200">
-          <Download size={15} className="md:w-[13px] md:h-[13px]" />
+          <Download size={14} className="md:w-[13px] md:h-[13px]" />
           Download
         </button>
       </div>
 
+      {showPreview && (
+        <DocumentViewer
+          url={resource.fileUrl}
+          type={resource.fileType}
+          title={resource.title}
+          onClose={() => setShowPreview(false)}
+          onDownload={handleDownloadClick}
+        />
+      )}
     </motion.div>
   )
 }

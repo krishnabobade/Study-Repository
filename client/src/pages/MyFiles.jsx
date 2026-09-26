@@ -6,11 +6,13 @@ import toast from 'react-hot-toast'
 import api from '../services/api'
 import { FileTypeBadge, CategoryBadge, timeAgo, forceDownloadBlob } from '../components/shared/utils'
 import { SkeletonList, SkeletonResourceCard } from '../components/shared/Skeleton.jsx'
+import DocumentViewer from '../components/shared/DocumentViewer.jsx'
 
 export default function MyFiles() {
   const [resources, setResources] = useState([])
   const [loading, setLoading]     = useState(true)
   const [deleting, setDeleting]   = useState(null)
+  const [previewResource, setPreviewResource] = useState(null)
 
   const fetchFiles = async () => {
     try {
@@ -134,6 +136,13 @@ export default function MyFiles() {
                     <span className="flex items-center gap-1"><Eye size={12} />{r.views}</span>
                   </div>
                   
+                  <button 
+                    onClick={() => setPreviewResource(r)}
+                    className="p-2 sm:p-2 flex items-center gap-1 rounded-lg bg-panel sm:bg-transparent border border-border sm:border-transparent hover:bg-panel text-text-muted hover:text-text-main transition-all text-xs"
+                    title="Preview Document">
+                    <Eye size={14} />
+                    <span className="hidden md:inline font-medium">Preview</span>
+                  </button>
                   <a href={r.fileUrl} target="_blank" rel="noreferrer"
                     className="p-2 sm:p-2 rounded-lg bg-panel sm:bg-transparent border border-border sm:border-transparent hover:bg-panel text-text-muted hover:text-text-main transition-all"
                     title="Open External">
@@ -150,12 +159,14 @@ export default function MyFiles() {
                         toast.dismiss(toastId);
                       }
                     }}
-                    className="p-2 sm:p-2 flex items-center justify-center rounded-lg bg-ink-500/10 sm:bg-transparent border border-ink-500/20 sm:border-transparent hover:bg-ink-500/20 text-ink-400 transition-all">
+                    className="p-2 sm:p-2 flex items-center justify-center rounded-lg bg-ink-500/10 sm:bg-transparent border border-ink-500/20 sm:border-transparent hover:bg-ink-500/20 text-ink-400 transition-all"
+                    title="Download File">
                     <Download size={14} />
                   </button>
                   <button onClick={() => handleDelete(r._id, r.title)}
                     disabled={deleting === r._id}
-                    className="p-2 sm:p-2 rounded-lg bg-red-500/10 sm:bg-transparent border border-red-500/20 sm:border-transparent hover:bg-red-500/20 text-red-400 transition-all">
+                    className="p-2 sm:p-2 rounded-lg bg-red-500/10 sm:bg-transparent border border-red-500/20 sm:border-transparent hover:bg-red-500/20 text-red-400 transition-all"
+                    title="Delete File">
                     {deleting === r._id
                       ? <span className="w-3.5 h-3.5 border border-red-400/40 border-t-red-400 rounded-full animate-spin block" />
                       : <Trash2 size={14} />}
@@ -165,6 +176,26 @@ export default function MyFiles() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Document Preview Modal */}
+      {previewResource && (
+        <DocumentViewer
+          url={previewResource.fileUrl}
+          type={previewResource.fileType}
+          title={previewResource.title}
+          onClose={() => setPreviewResource(null)}
+          onDownload={async () => {
+            const toastId = toast.loading('Preparing download...');
+            const success = await forceDownloadBlob(previewResource.fileUrl, previewResource.title, previewResource.fileType);
+            if (success) {
+              api.post(`/resources/${previewResource._id}/download`).catch(() => {});
+              toast.success('Download complete!', { id: toastId });
+            } else {
+              toast.dismiss(toastId);
+            }
+          }}
+        />
       )}
     </div>
   )
