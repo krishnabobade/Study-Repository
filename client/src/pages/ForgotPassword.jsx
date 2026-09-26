@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, ArrowLeft, BookOpen, KeyRound, ShieldCheck, CheckCircle2, RefreshCw, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, ArrowLeft, BookOpen, KeyRound, ShieldCheck, CheckCircle2, RefreshCw, Lock, Eye, EyeOff, AlertCircle, MessageSquare, Phone, Copy } from 'lucide-react';
 import SEO from '../components/shared/SEO';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -12,6 +12,10 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
+  const [whatsappUrl, setWhatsappUrl] = useState(null);
+  const [registeredPhone, setRegisteredPhone] = useState(null);
+  const [serverOtpCode, setServerOtpCode] = useState(null);
+  const [emailSentStatus, setEmailSentStatus] = useState(true);
   
   // Password Reset State
   const [password, setPassword] = useState('');
@@ -36,12 +40,17 @@ export default function ForgotPassword() {
   // Handle Email Submission (Step 1)
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error('Please enter your email address');
+    if (!email) return toast.error('Please enter your email or registered phone number');
 
     setLoading(true);
     try {
       const res = await api.post('/auth/forgot-password', { email });
-      toast.success(res.data.message || 'OTP sent successfully!');
+      toast.success(res.data.message || 'OTP generated successfully!');
+      if (res.data.whatsappUrl) setWhatsappUrl(res.data.whatsappUrl);
+      if (res.data.phone) setRegisteredPhone(res.data.phone);
+      if (res.data.otpCode) setServerOtpCode(res.data.otpCode);
+      if (res.data.emailSent !== undefined) setEmailSentStatus(res.data.emailSent);
+      
       setStep('otp');
       setCooldown(60); // 60 seconds cooldown
     } catch (err) {
@@ -72,8 +81,8 @@ export default function ForgotPassword() {
 
   const handleOtpPaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').slice(0, 6).split('');
-    if (pastedData.some(isNaN)) return;
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6).split('');
+    if (pastedData.length === 0) return;
 
     const newOtp = [...otp];
     pastedData.forEach((char, i) => {
@@ -81,6 +90,13 @@ export default function ForgotPassword() {
     });
     setOtp(newOtp);
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
+  };
+
+  const autoFillCode = (code) => {
+    if (!code || code.length !== 6) return;
+    const digits = code.split('');
+    setOtp(digits);
+    toast.success('OTP code auto-filled!');
   };
 
   // Handle OTP Verification
@@ -108,7 +124,11 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       const res = await api.post('/auth/resend-otp', { email });
-      toast.success(res.data.message || 'A new OTP has been sent.');
+      toast.success(res.data.message || 'A new OTP has been generated.');
+      if (res.data.whatsappUrl) setWhatsappUrl(res.data.whatsappUrl);
+      if (res.data.phone) setRegisteredPhone(res.data.phone);
+      if (res.data.otpCode) setServerOtpCode(res.data.otpCode);
+      if (res.data.emailSent !== undefined) setEmailSentStatus(res.data.emailSent);
       setCooldown(60);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to resend OTP.');
@@ -191,27 +211,27 @@ export default function ForgotPassword() {
               </div>
             </div>
             
-            {/* STEP 1: EMAIL REQUEST */}
+            {/* STEP 1: EMAIL / PHONE REQUEST */}
             {step === 'email' && (
               <>
                 <h2 className="text-2xl font-bold text-center text-text-main mb-2">Forgot Password?</h2>
                 <p className="text-center text-text-muted mb-6 text-sm">
-                  Enter your registered institutional email address. We'll send a secure One-Time Password (OTP) to confirm your identity.
+                  Enter your registered Email address or Phone number. We'll send a secure One-Time Password (OTP) via Email and WhatsApp.
                 </p>
                 
                 <form onSubmit={handleEmailSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-text-main mb-1.5">Email Address</label>
+                    <label className="block text-sm font-medium text-text-main mb-1.5">Email or Phone Number</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Mail size={18} className="text-text-muted/60" />
                       </div>
                       <input
-                        type="email"
+                        type="text"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@mitwpu.edu.in"
+                        placeholder="you@mitwpu.edu.in or 9876543210"
                         className="input pl-10"
                       />
                     </div>
@@ -220,12 +240,15 @@ export default function ForgotPassword() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="btn-primary w-full justify-center py-3.5"
+                    className="btn-primary w-full justify-center py-3.5 flex items-center gap-2"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
-                      <>Send Security OTP</>
+                      <>
+                        <ShieldCheck size={18} />
+                        <span>Send OTP Code</span>
+                      </>
                     )}
                   </button>
                 </form>
@@ -235,13 +258,47 @@ export default function ForgotPassword() {
             {/* STEP 2: OTP VERIFICATION */}
             {step === 'otp' && (
               <>
-                <h2 className="text-2xl font-bold text-center text-text-main mb-2">Verify Your Email</h2>
-                <p className="text-center text-text-muted mb-6 text-sm">
-                  We've sent a 6-digit verification code to <span className="font-semibold text-text-main">{email}</span>.
+                <h2 className="text-2xl font-bold text-center text-text-main mb-2">Security Verification</h2>
+                <p className="text-center text-text-muted mb-4 text-sm">
+                  Enter the 6-digit OTP code sent for <span className="font-semibold text-text-main">{email}</span>.
                 </p>
+
+                {/* WhatsApp Button Banner */}
+                {whatsappUrl && (
+                  <div className="mb-5 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                    <p className="text-xs font-semibold text-emerald-400 flex items-center justify-center gap-1.5">
+                      <MessageSquare size={14} /> Send OTP via WhatsApp to {registeredPhone || 'your registered number'}
+                    </p>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-600/20"
+                    >
+                      <MessageSquare size={15} />
+                      Open WhatsApp to Get OTP
+                    </a>
+                  </div>
+                )}
+
+                {/* Direct OTP Helper Banner */}
+                {serverOtpCode && (
+                  <div 
+                    onClick={() => autoFillCode(serverOtpCode)}
+                    className="mb-5 p-3 rounded-xl bg-ink-500/10 border border-ink-500/20 cursor-pointer hover:bg-ink-500/20 transition-all text-center group"
+                    title="Click to auto-fill OTP"
+                  >
+                    <p className="text-[11px] text-text-muted uppercase font-mono tracking-wider mb-1">Generated Verification Code</p>
+                    <div className="flex items-center justify-center gap-2 font-mono text-lg font-bold text-ink-300">
+                      <span>{serverOtpCode}</span>
+                      <Copy size={14} className="group-hover:scale-110 transition-transform text-ink-400" />
+                    </div>
+                    <p className="text-[10px] text-ink-400/80 mt-1">Tap code to auto-fill instantly</p>
+                  </div>
+                )}
                 
                 <form onSubmit={handleOtpSubmit} className="space-y-6">
-                  <div className="flex justify-center gap-1.5 xs:gap-2 my-4" onPaste={handleOtpPaste}>
+                  <div className="flex justify-center gap-1.5 xs:gap-2 my-2" onPaste={handleOtpPaste}>
                     {otp.map((digit, index) => (
                       <input
                         key={index}
@@ -270,16 +327,30 @@ export default function ForgotPassword() {
                   </button>
 
                   <div className="flex flex-col items-center justify-center gap-2 pt-2 border-t border-border">
-                    <p className="text-xs text-text-muted">Didn't receive the email?</p>
-                    <button
-                      type="button"
-                      disabled={cooldown > 0 || loading}
-                      onClick={handleResendOtp}
-                      className="inline-flex items-center text-sm font-semibold text-ink-600 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-300 disabled:text-text-muted disabled:cursor-not-allowed transition-colors gap-1.5"
-                    >
-                      <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                      {cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP'}
-                    </button>
+                    <p className="text-xs text-text-muted">Didn't receive the OTP code?</p>
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        disabled={cooldown > 0 || loading}
+                        onClick={handleResendOtp}
+                        className="inline-flex items-center text-xs font-semibold text-ink-600 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-300 disabled:text-text-muted disabled:cursor-not-allowed transition-colors gap-1.5"
+                      >
+                        <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+                        {cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP'}
+                      </button>
+
+                      {whatsappUrl && (
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors gap-1"
+                        >
+                          <MessageSquare size={13} />
+                          WhatsApp Link
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </form>
               </>

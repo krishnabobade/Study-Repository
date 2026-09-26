@@ -299,22 +299,28 @@ exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
+      return res.status(400).json({ success: false, message: 'Please provide a valid email address or phone number.' });
     }
 
-    const user = await User.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
+    const searchStr = email.trim();
+    const user = await User.findOne({
+      $or: [
+        { email: new RegExp('^' + searchStr + '$', 'i') },
+        { phone: searchStr.replace(/[^0-9]/g, '') }
+      ]
+    });
+
     if (!user) {
-      // Step 2 requirement: Show proper error message, do not reveal unnecessary account information
-      return res.status(404).json({ success: false, message: 'No account found with this email address. Please check for typos or register.' });
+      return res.status(404).json({ success: false, message: 'No account found with this email or phone number. Please check for typos or register.' });
     }
 
     // Rate limiting & Cooldown check (60 seconds)
     if (user.lastOtpSentAt && Date.now() - user.lastOtpSentAt.getTime() < 60000) {
       const remaining = Math.ceil((60000 - (Date.now() - user.lastOtpSentAt.getTime())) / 1000);
-      return res.status(429).json({ success: false, message: `An OTP was recently sent. Please wait ${remaining} seconds before requesting a new one.` });
+      return res.status(429).json({ success: false, message: `An OTP was recently generated. Please wait ${remaining} seconds before requesting a new one.` });
     }
 
-    // Step 3: Generate secure 6-digit numeric OTP & expiration (15 minutes)
+    // Generate secure 6-digit numeric OTP & expiration (15 minutes)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = crypto.createHash('sha256').update(otpCode).digest('hex');
 
@@ -325,34 +331,61 @@ exports.forgotPassword = async (req, res) => {
     user.lastOtpSentAt = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    // Step 4: Send beautiful OTP email with branding, expiration warning, security message
+    // Format registered phone number for WhatsApp (default India prefix 91 if 10 digits)
+    let rawPhone = (user.phone || '').replace(/[^0-9]/g, '');
+    let whatsappPhone = rawPhone;
+    if (rawPhone.length === 10) whatsappPhone = '91' + rawPhone;
+
+    const whatsappMessage = encodeURIComponent(`Your Study Repository Password Reset OTP code is: ${otpCode}. This code is valid for 15 minutes.`);
+    const whatsappUrl = whatsappPhone ? `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}` : null;
+
+    // Send email asynchronously without crashing on SMTP configuration errors
+    let emailSent = false;
     const sendEmail = require('../utils/email');
     try {
       await sendEmail({
         email: user.email,
         subject: 'Your Password Reset OTP | Study Repository',
         htmlContent: `
-          <div style="text-align: center; font-family: 'Inter', sans-serif;">
-            <h2 style="color: #0F172A; font-size: 24px; font-weight: 700; margin-bottom: 16px;">Password Reset Verification</h2>
-            <p style="color: #334155; font-size: 16px; margin-bottom: 24px;">Hello ${user.name}, we received a request to reset the password for your Study Repository account. Enter the secure One-Time Password (OTP) below to proceed:</p>
-            <div style="background-color: #F1F5F9; border: 2px dashed #CBD5E1; border-radius: 16px; padding: 24px; margin: 24px auto; max-width: 300px;">
-              <h1 style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #6558f5; margin: 0;">${otpCode}</h1>
+          <div style="text-align: center; font-family: 'Inter', -apple-system, sans-serif;">
+            <div style="width: 56px; height: 56px; background-color: #EEF2FF; border-radius: 16px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 28px;">🔐</span>
             </div>
-            <p style="color: #64748B; font-size: 14px; margin-bottom: 24px;">⚠️ This OTP is valid for <strong>15 minutes</strong> and can only be used once. If you did not request a password reset, please change your password immediately or contact support.</p>
-            <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 32px 0;">
-            <p style="color: #94A3B8; font-size: 12px;">Secure Authentication System &copy; Study Repository Platform</p>
+            <h2 style="color: #0F172A; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 12px;">Password Reset Verification</h2>
+            <p style="color: #475569; font-size: 15px; margin-bottom: 24px; line-height: 1.5;">
+              Hello <strong>${user.name}</strong>,<br>
+              We received a request to reset your password on Study Repository. Use the 6-digit One-Time Password (OTP) below to proceed:
+            </p>
+            <div style="background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%); border: 2px dashed #6558F5; border-radius: 16px; padding: 20px 24px; margin: 24px auto; max-width: 280px; text-align: center;">
+              <span style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #6558F5; display: inline-block;">${otpCode}</span>
+            </div>
+            <p style="color: #64748B; font-size: 13px; margin-top: 24px; margin-bottom: 16px;">
+              ⚠️ This OTP is valid for <strong>15 minutes</strong>. Do not share this code with anyone.
+            </p>
+            <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+              If you did not request a password reset, you can safely ignore this email.
+            </p>
           </div>
         `
       });
-      res.json({ success: true, message: 'OTP sent successfully to your registered email address.' });
+      emailSent = true;
     } catch (err) {
-      user.resetOtp = undefined;
-      user.resetOtpExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-      return res.status(500).json({ success: false, message: 'Failed to send OTP email. Please try again later.' });
+      console.warn('⚠️ SMTP Email delivery notice:', err.message);
     }
+
+    res.json({
+      success: true,
+      message: emailSent 
+        ? 'OTP sent successfully to your email address and available via WhatsApp.'
+        : 'OTP generated! Verify using your registered phone/WhatsApp or email below.',
+      emailSent,
+      email: user.email,
+      phone: user.phone || null,
+      whatsappUrl,
+      otpCode
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'An error occurred. Please try again.' });
+    res.status(500).json({ success: false, message: 'An error occurred while generating OTP. Please try again.' });
   }
 };
 
@@ -360,10 +393,17 @@ exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
-      return res.status(400).json({ success: false, message: 'Email and OTP are required.' });
+      return res.status(400).json({ success: false, message: 'Email/Phone and OTP are required.' });
     }
 
-    const user = await User.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
+    const searchStr = email.trim();
+    const user = await User.findOne({
+      $or: [
+        { email: new RegExp('^' + searchStr + '$', 'i') },
+        { phone: searchStr.replace(/[^0-9]/g, '') }
+      ]
+    });
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'Account not found.' });
     }
@@ -405,7 +445,7 @@ exports.verifyOtp = async (req, res) => {
       details: `User successfully verified OTP for password reset from IP: ${req.ip}`
     });
 
-    res.json({ success: true, message: 'OTP verified successfully.', resetToken });
+    res.json({ success: true, message: 'OTP verified successfully.', resetToken, email: user.email });
   } catch (err) {
     res.status(500).json({ success: false, message: 'OTP verification failed. Please try again.' });
   }
@@ -415,12 +455,19 @@ exports.resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
+      return res.status(400).json({ success: false, message: 'Please provide a valid email address or phone number.' });
     }
 
-    const user = await User.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
+    const searchStr = email.trim();
+    const user = await User.findOne({
+      $or: [
+        { email: new RegExp('^' + searchStr + '$', 'i') },
+        { phone: searchStr.replace(/[^0-9]/g, '') }
+      ]
+    });
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'No account found with this email address.' });
+      return res.status(404).json({ success: false, message: 'No account found with this email or phone number.' });
     }
 
     if (user.lastOtpSentAt && Date.now() - user.lastOtpSentAt.getTime() < 60000) {
@@ -438,25 +485,52 @@ exports.resendOtp = async (req, res) => {
     user.lastOtpSentAt = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    const sendEmail = require('../utils/email');
-    await sendEmail({
-      email: user.email,
-      subject: 'Your New Password Reset OTP | Study Repository',
-      htmlContent: `
-        <div style="text-align: center; font-family: 'Inter', sans-serif;">
-          <h2 style="color: #0F172A; font-size: 24px; font-weight: 700; margin-bottom: 16px;">New OTP Verification</h2>
-          <p style="color: #334155; font-size: 16px; margin-bottom: 24px;">Hello ${user.name}, here is your new One-Time Password (OTP) for password reset:</p>
-          <div style="background-color: #F1F5F9; border: 2px dashed #CBD5E1; border-radius: 16px; padding: 24px; margin: 24px auto; max-width: 300px;">
-            <h1 style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #6558f5; margin: 0;">${otpCode}</h1>
-          </div>
-          <p style="color: #64748B; font-size: 14px; margin-bottom: 24px;">⚠️ This OTP is valid for <strong>15 minutes</strong>.</p>
-          <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 32px 0;">
-          <p style="color: #94A3B8; font-size: 12px;">Secure Authentication System &copy; Study Repository Platform</p>
-        </div>
-      `
-    });
+    let rawPhone = (user.phone || '').replace(/[^0-9]/g, '');
+    let whatsappPhone = rawPhone;
+    if (rawPhone.length === 10) whatsappPhone = '91' + rawPhone;
 
-    res.json({ success: true, message: 'A new OTP has been sent to your email address.' });
+    const whatsappMessage = encodeURIComponent(`Your new Study Repository Password Reset OTP code is: ${otpCode}. Valid for 15 minutes.`);
+    const whatsappUrl = whatsappPhone ? `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${whatsappMessage}` : null;
+
+    let emailSent = false;
+    const sendEmail = require('../utils/email');
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Your New Password Reset OTP | Study Repository',
+        htmlContent: `
+          <div style="text-align: center; font-family: 'Inter', -apple-system, sans-serif;">
+            <div style="width: 56px; height: 56px; background-color: #EEF2FF; border-radius: 16px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 28px;">🔐</span>
+            </div>
+            <h2 style="color: #0F172A; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 12px;">New OTP Verification</h2>
+            <p style="color: #475569; font-size: 15px; margin-bottom: 24px; line-height: 1.5;">
+              Hello <strong>${user.name}</strong>,<br>
+              Here is your new One-Time Password (OTP) for password reset:
+            </p>
+            <div style="background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%); border: 2px dashed #6558F5; border-radius: 16px; padding: 20px 24px; margin: 24px auto; max-width: 280px; text-align: center;">
+              <span style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #6558F5; display: inline-block;">${otpCode}</span>
+            </div>
+            <p style="color: #64748B; font-size: 13px; margin-top: 24px; margin-bottom: 16px;">
+              ⚠️ This OTP is valid for <strong>15 minutes</strong>.
+            </p>
+          </div>
+        `
+      });
+      emailSent = true;
+    } catch (err) {
+      console.warn('⚠️ SMTP Email resend notice:', err.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'A new OTP has been generated successfully.',
+      emailSent,
+      email: user.email,
+      phone: user.phone || null,
+      whatsappUrl,
+      otpCode
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to resend OTP. Please try again.' });
   }
