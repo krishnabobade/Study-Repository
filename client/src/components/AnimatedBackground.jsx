@@ -74,7 +74,7 @@ const AnimatedBackground = memo(() => {
               rotate: [item.r, item.r + 15, item.r]
             }}
             transition={{ 
-              duration: 25 + (i * 1.5), 
+              duration: (25 + (i * 1.5)) * 0.9, 
               repeat: Infinity, 
               ease: "linear",
               delay: item.d

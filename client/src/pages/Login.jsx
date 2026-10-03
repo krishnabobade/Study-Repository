@@ -159,7 +159,7 @@ export default function Login() {
               id="email"
               label="Email"
               type="email"
-              placeholder="you@college.edu"
+              placeholder="email@mitwpu.edu.in"
               icon={Mail}
               autoComplete="email"
               inputMode="email"
