@@ -106,27 +106,12 @@ export default function DocumentViewer({ url, type, title, onClose, onDownload }
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Office / PDF Provider Toggle */}
+            {/* Provider Indicator */}
             {(isOffice || isPDF) && !isLocalUrl && (
               <div className="hidden sm:flex items-center bg-surface border border-border rounded-lg p-0.5 text-xs mr-2">
-                <button
-                  onClick={() => setViewerProvider('google')}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${viewerProvider === 'google' ? 'bg-ink-500 text-white' : 'text-text-muted hover:text-text-main'}`}
-                >
+                <span className="px-2 py-1 rounded-md text-xs font-medium bg-ink-500 text-white">
                   Google Engine
-                </button>
-                <button
-                  onClick={() => setViewerProvider('office')}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${viewerProvider === 'office' ? 'bg-ink-500 text-white' : 'text-text-muted hover:text-text-main'}`}
-                >
-                  Microsoft Engine
-                </button>
-                <button
-                  onClick={() => setViewerProvider('native')}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${viewerProvider === 'native' ? 'bg-ink-500 text-white' : 'text-text-muted hover:text-text-main'}`}
-                >
-                  Direct Mode
-                </button>
+                </span>
               </div>
             )}
 
