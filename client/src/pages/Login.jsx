@@ -148,7 +148,7 @@ export default function Login() {
 
       <TopBar />
 
-      <main className="w-full flex-1 flex items-center justify-center p-3 sm:p-4 pt-12 pb-2 z-10 overflow-hidden">
+      <main className="w-full flex-1 flex flex-col items-center justify-center p-3 sm:p-4 pt-10 pb-4 z-10 overflow-hidden">
         <AuthCard isShaking={isShaking}>
           <BrandLogo />
 
@@ -214,9 +214,11 @@ export default function Login() {
             <SignupPrompt />
           </form>
         </AuthCard>
-      </main>
 
-      <AuthFooter />
+        <div className="mt-3 sm:mt-4">
+          <AuthFooter />
+        </div>
+      </main>
     </div>
   )
 }
