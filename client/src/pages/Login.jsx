@@ -1,201 +1,231 @@
-import { useState, memo, useCallback, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { BookOpen, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
 
 import AnimatedBackground from '../components/AnimatedBackground'
-import ThemeToggle from '../components/shared/ThemeToggle'
 import SEO from '../components/shared/SEO'
+import TopBar from '../components/auth/TopBar'
+import AuthCard from '../components/auth/AuthCard'
+import BrandLogo from '../components/auth/BrandLogo'
+import AuthHeading from '../components/auth/AuthHeading'
+import FormAlert from '../components/auth/FormAlert'
+import TextField from '../components/auth/TextField'
+import PasswordField from '../components/auth/PasswordField'
+import FormOptionsRow from '../components/auth/FormOptionsRow'
+import Button from '../components/auth/Button'
+import Divider from '../components/auth/Divider'
+import GoogleButton from '../components/auth/GoogleButton'
+import SignupPrompt from '../components/auth/SignupPrompt'
+import AuthFooter from '../components/auth/AuthFooter'
+import { Mail, ShieldAlert } from 'lucide-react'
 
-const LoginForm = memo(() => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [consentAccepted, setConsentAccepted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  
-  const { login } = useAuthStore()
-  const navigate = useNavigate()
-
-  const handleEmailChange = useCallback((e) => setEmail(e.target.value), [])
-  const handlePasswordChange = useCallback((e) => setPassword(e.target.value), [])
-  const toggleShowPass = useCallback(() => setShowPass(prev => !prev), [])
-  const handleConsentChange = useCallback((e) => setConsentAccepted(e.target.checked), [])
-
-  const isValidEmail = useMemo(() => {
-    return email === '' || email.toLowerCase().endsWith('@mitwpu.edu.in')
-  }, [email])
-
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault()
-    if (!email || !password) {
-      return toast.error('Please fill in all fields')
-    }
-    if (!email.toLowerCase().endsWith('@mitwpu.edu.in')) {
-      return toast.error('Only @mitwpu.edu.in email addresses are permitted')
-    }
-    if (!consentAccepted) {
-      return toast.error('You must accept Terms & Conditions to continue.')
-    }
-    
-    setLoading(true)
-    try {
-      await login(email, password, consentAccepted)
-      toast.success('Welcome back!')
-      navigate('/dashboard')
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed';
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [email, password, consentAccepted, login, navigate])
-
-  const handleDisabledSubmit = useCallback((e) => {
-    if (!consentAccepted) {
-      e.preventDefault();
-      toast.error('You must accept Terms & Conditions to continue.');
-    }
-  }, [consentAccepted])
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="w-full max-w-md relative z-10 transform-gpu"
-    >
-      <div className="glass rounded-3xl p-5 xs:p-8 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-col items-center mb-8">
-          <h1 className="font-display font-bold text-2xl text-text-main">Welcome back</h1>
-          <p className="text-text-muted text-sm mt-1">Sign in to your Study Repository</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <Mail size={16} className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${!isValidEmail ? 'text-red-400' : 'text-text-muted/30'}`} />
-            <input 
-              id="email" 
-              name="email" 
-              type="email" 
-              placeholder="College email (@mitwpu.edu.in)" 
-              value={email}
-              onChange={handleEmailChange} 
-              required
-              autocomplete="username"
-              className={`input pl-11 transition-all ${!isValidEmail ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : ''}`} 
-            />
-          </div>
-
-          <div className="relative">
-            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted/30 pointer-events-none" />
-            <input 
-              id="password" 
-              name="password" 
-              type={showPass ? 'text' : 'password'} 
-              placeholder="Password" 
-              value={password}
-              onChange={handlePasswordChange} 
-              required
-              autocomplete="current-password"
-              className="input pl-11 pr-11" 
-            />
-            <button type="button" onClick={toggleShowPass}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted/40 hover:text-text-main transition-colors">
-              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-
-          <div className="flex justify-end mt-1">
-            <Link to="/forgot-password" className="text-sm text-ink-400 hover:text-ink-300 font-medium transition-colors">
-              Forgot password?
-            </Link>
-          </div>
-
-          <div className="flex items-start gap-3 mt-4 mb-2">
-            <div className="flex items-center h-5 mt-0.5">
-              <input
-                id="consent"
-                type="checkbox"
-                checked={consentAccepted}
-                onChange={handleConsentChange}
-                className="checkbox"
-              />
-            </div>
-            <label htmlFor="consent" className="text-xs text-text-muted leading-relaxed cursor-pointer select-none">
-              I agree to the <Link to="/terms" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Terms & Conditions</Link> and <Link to="/privacy-policy" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Privacy Policy</Link> and accept the use of <Link to="/privacy-policy" className="text-ink-400 hover:text-ink-300 font-medium hover:underline">Cookies</Link>.
-            </label>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading || !consentAccepted}
-            className="btn-primary w-full justify-center py-3 text-base mt-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            onClick={handleDisabledSubmit}
-          >
-            {loading
-              ? <span className="w-5 h-5 border-2 border-border border-t-white rounded-full animate-spin" />
-              : <>Sign in <ArrowRight size={16} /></>
-            }
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-text-muted/60 mt-6 mb-6">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-ink-400 hover:text-ink-300 font-medium transition-colors">
-            Create one
-          </Link>
-        </p>
-
-        <div className="pt-5 border-t border-white/5 flex items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-xs text-text-muted/60" title="Secured with 256-bit encryption">
-            <Lock size={14} className="text-green-500/70" />
-            <span>Secure Login</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-text-muted/60" title="Official Institutional Portal">
-            <ShieldCheck size={14} className="text-blue-500/70" />
-            <span>Verified Portal</span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  )
+// Validation Schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, { message: 'Please enter your email address.' })
+    .email({ message: 'Please enter a valid email address.' }),
+  password: z
+    .string()
+    .min(1, { message: 'Please enter your password.' }),
+  remember: z.boolean().default(true)
 })
 
-const Login = memo(() => {
-  const loginSchema = {
+export default function Login() {
+  // Status State Machine: 'idle' | 'submitting' | 'success' | 'error'
+  const [status, setStatus] = useState('idle')
+  const [formError, setFormError] = useState(null)
+  const [failedAttempts, setFailedAttempts] = useState(0)
+  const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [isShaking, setIsShaking] = useState(false)
+
+  const { login } = useAuthStore()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // Validate next param for same-origin relative path redirect safety
+  const safeNextUrl = useMemo(() => {
+    const rawNext = searchParams.get('next')
+    if (rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.startsWith('/\\')) {
+      return rawNext
+    }
+    return '/dashboard'
+  }, [searchParams])
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    setFocus,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+      remember: true
+    }
+  })
+
+  const rememberVal = watch('remember')
+
+  const triggerShake = useCallback(() => {
+    setIsShaking(true)
+    setTimeout(() => setIsShaking(false), 350)
+  }, [])
+
+  const onSubmit = async (data) => {
+    // If failed attempts >= 3 and CAPTCHA required but not checked
+    if (failedAttempts >= 3 && !captchaVerified) {
+      setFormError('Security verification required. Please complete the CAPTCHA check below.')
+      triggerShake()
+      return
+    }
+
+    setFormError(null)
+    setStatus('submitting')
+
+    try {
+      await login(data.email, data.password, true)
+      
+      setStatus('success')
+      toast.success('Signed in successfully!')
+
+      // Wait ~400ms for check animation before navigating
+      setTimeout(() => {
+        navigate(safeNextUrl, { replace: true })
+      }, 400)
+    } catch (err) {
+      setStatus('error')
+      triggerShake()
+
+      const newFailedCount = failedAttempts + 1
+      setFailedAttempts(newFailedCount)
+
+      // Clear password field & refocus password
+      setValue('password', '')
+      setTimeout(() => setFocus('password'), 50)
+
+      if (!err.response) {
+        setFormError("Can't connect. Check your internet connection and try again.")
+      } else if (err.response.status === 401) {
+        setFormError('Incorrect email or password. Try again or reset your password.')
+      } else if (err.response.status === 429) {
+        const msg = err.response.data?.message || 'Too many attempts. Try again in a few minutes.'
+        setFormError(msg)
+      } else if (err.response.status >= 500) {
+        setFormError('Something went wrong on our end. Please try again in a moment.')
+      } else {
+        setFormError(err.response.data?.message || 'Login failed. Please try again.')
+      }
+    }
+  }
+
+  const structuredSchemaData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Sign In - Study Repository",
+    "name": "Sign in - Study Repository",
     "description": "Access your academic study repository account to download and share course notes.",
     "publisher": {
       "@type": "EducationalOrganization",
       "name": "Study Repository",
       "logo": "https://study-repository-ten.vercel.app/logo.png"
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-4 relative overflow-hidden">
-      <SEO 
-        title="Login | Study Repository" 
-        description="Sign in to your Study Repository account to access premium academic resources." 
-        schema={loginSchema}
+    <div className="min-h-[100dvh] bg-surface flex flex-col justify-between items-center relative overflow-x-hidden selection:bg-ink-500/20">
+      <SEO
+        title="Sign in | Study Repository"
+        description="Sign in to your Study Repository account to access premium academic resources."
+        schema={structuredSchemaData}
       />
-      
-      <div className="absolute inset-0 z-0">
-        <AnimatedBackground />
-      </div>
 
-      <div className="absolute top-6 right-6 z-50">
-        <ThemeToggle />
-      </div>
+      <AnimatedBackground />
 
-      <LoginForm />
+      <TopBar />
+
+      <main className="w-full flex-1 flex items-center justify-center p-4 pt-20 pb-8 sm:py-12 z-10">
+        <AuthCard isShaking={isShaking}>
+          <BrandLogo />
+          
+          <AuthHeading
+            title="Welcome back"
+            subtitle="Sign in to access your notes, papers and resources."
+          />
+
+          <FormAlert message={formError} />
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+            <TextField
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="you@college.edu"
+              icon={Mail}
+              autoComplete="email"
+              inputMode="email"
+              disabled={status === 'submitting' || status === 'success'}
+              error={errors.email?.message}
+              {...register('email')}
+            />
+
+            <PasswordField
+              id="password"
+              label="Password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              disabled={status === 'submitting' || status === 'success'}
+              error={errors.password?.message}
+              {...register('password')}
+            />
+
+            <FormOptionsRow
+              remember={rememberVal}
+              onRememberChange={(val) => setValue('remember', val)}
+              disabled={status === 'submitting' || status === 'success'}
+            />
+
+            {/* Turnstile / CAPTCHA security badge after 3 failed attempts */}
+            {failedAttempts >= 3 && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-center justify-between animate-fade-in my-2">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert size={16} className="text-amber-400 shrink-0" />
+                  <span>Security Verification Required</span>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={captchaVerified}
+                    onChange={(e) => setCaptchaVerified(e.target.checked)}
+                    className="checkbox"
+                  />
+                  <span className="text-[11px] font-mono">I am human</span>
+                </label>
+              </div>
+            )}
+
+            <Button status={status} className="mt-6">
+              Sign in
+            </Button>
+
+            <Divider label="or" />
+
+            <GoogleButton />
+
+            <SignupPrompt />
+          </form>
+        </AuthCard>
+      </main>
+
+      <AuthFooter />
     </div>
   )
-})
-
-export default Login
+}

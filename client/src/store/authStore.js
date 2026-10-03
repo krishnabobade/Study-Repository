@@ -8,7 +8,7 @@ const useAuthStore = create((set, get) => ({
 
   setUser: (user) => set({ user }),
 
-  login: async (email, password, consentAccepted) => {
+  login: async (email, password, consentAccepted = true) => {
     const { data } = await api.post('/auth/login', { email, password, consentAccepted })
     localStorage.setItem('token', data.token)
     set({ user: data.user, token: data.token })
