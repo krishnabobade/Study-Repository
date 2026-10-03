@@ -40,6 +40,7 @@ function Sidebar({ mobile = false, user, setMobileMenuOpen, setLogoutConfirmOpen
       {/* Logo */}
       <div className={`p-6 pb-4 ${mobile ? 'p-5 flex items-center justify-between' : ''}`}>
         <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Study Repository Logo" className="w-8 h-8 object-contain rounded-xl shadow-sm shrink-0" />
           <span className="font-display font-bold text-lg text-text-main">
             {mobile ? 'StudyRepo' : 'Study Repository'}
           </span>
