@@ -15,7 +15,7 @@ const AuthCard = memo(({ children, isShaking }) => {
           ? { duration: 0.3 }
           : { duration: 0.25, ease: 'easeOut' }
       }
-      className="w-full max-w-[440px] rounded-[20px] p-6 sm:p-8 md:p-10 bg-card border border-white/[0.08] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative z-10 my-auto transform-gpu"
+      className="w-full max-w-[440px] rounded-[20px] p-5 sm:p-7 md:p-8 bg-card border border-white/[0.08] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] relative z-10 my-auto transform-gpu"
     >
       {children}
     </motion.div>

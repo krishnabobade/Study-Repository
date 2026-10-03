@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const SignupPrompt = memo(() => {
   return (
-    <p className="text-center text-xs sm:text-sm text-text-muted mt-7">
+    <p className="text-center text-xs sm:text-sm text-text-muted mt-4">
       Don't have an account?{' '}
       <Link
         to="/register"

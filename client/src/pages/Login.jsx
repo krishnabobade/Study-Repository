@@ -82,7 +82,6 @@ export default function Login() {
   }, [])
 
   const onSubmit = async (data) => {
-    // If failed attempts >= 3 and CAPTCHA required but not checked
     if (failedAttempts >= 3 && !captchaVerified) {
       setFormError('Security verification required. Please complete the CAPTCHA check below.')
       triggerShake()
@@ -98,7 +97,6 @@ export default function Login() {
       setStatus('success')
       toast.success('Signed in successfully!')
 
-      // Wait ~400ms for check animation before navigating
       setTimeout(() => {
         navigate(safeNextUrl, { replace: true })
       }, 400)
@@ -109,7 +107,6 @@ export default function Login() {
       const newFailedCount = failedAttempts + 1
       setFailedAttempts(newFailedCount)
 
-      // Clear password field & refocus password
       setValue('password', '')
       setTimeout(() => setFocus('password'), 50)
 
@@ -141,7 +138,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-surface flex flex-col justify-between items-center relative overflow-x-hidden selection:bg-ink-500/20">
+    <div className="h-[100dvh] max-h-[100dvh] bg-surface flex flex-col justify-between items-center relative overflow-hidden select-none">
       <SEO
         title="Sign in | Study Repository"
         description="Sign in to your Study Repository account to access premium academic resources."
@@ -152,7 +149,7 @@ export default function Login() {
 
       <TopBar />
 
-      <main className="w-full flex-1 flex items-center justify-center p-4 pt-20 pb-8 sm:py-12 z-10">
+      <main className="w-full flex-1 flex items-center justify-center p-3 sm:p-4 pt-14 pb-2 z-10 overflow-hidden">
         <AuthCard isShaking={isShaking}>
           <BrandLogo />
           
@@ -163,7 +160,7 @@ export default function Login() {
 
           <FormAlert message={formError} />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <TextField
               id="email"
               label="Email"
@@ -193,11 +190,11 @@ export default function Login() {
               disabled={status === 'submitting' || status === 'success'}
             />
 
-            {/* Turnstile / CAPTCHA security badge after 3 failed attempts */}
+            {/* Security CAPTCHA verification badge after 3 failed attempts */}
             {failedAttempts >= 3 && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-center justify-between animate-fade-in my-2">
+              <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs flex items-center justify-between animate-fade-in my-1">
                 <div className="flex items-center gap-2">
-                  <ShieldAlert size={16} className="text-amber-400 shrink-0" />
+                  <ShieldAlert size={15} className="text-amber-400 shrink-0" />
                   <span>Security Verification Required</span>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -212,7 +209,7 @@ export default function Login() {
               </div>
             )}
 
-            <Button status={status} className="mt-6">
+            <Button status={status} className="mt-4">
               Sign in
             </Button>
 
