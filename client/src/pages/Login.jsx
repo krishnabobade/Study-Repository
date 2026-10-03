@@ -11,7 +11,6 @@ import SEO from '../components/shared/SEO'
 import TopBar from '../components/auth/TopBar'
 import AuthCard from '../components/auth/AuthCard'
 import BrandLogo from '../components/auth/BrandLogo'
-import AuthHeading from '../components/auth/AuthHeading'
 import FormAlert from '../components/auth/FormAlert'
 import TextField from '../components/auth/TextField'
 import PasswordField from '../components/auth/PasswordField'
@@ -149,18 +148,13 @@ export default function Login() {
 
       <TopBar />
 
-      <main className="w-full flex-1 flex items-center justify-center p-3 sm:p-4 pt-14 pb-2 z-10 overflow-hidden">
+      <main className="w-full flex-1 flex items-center justify-center p-3 sm:p-4 pt-12 pb-2 z-10 overflow-hidden">
         <AuthCard isShaking={isShaking}>
           <BrandLogo />
-          
-          <AuthHeading
-            title="Welcome back"
-            subtitle="Sign in to access your notes, papers and resources."
-          />
 
           <FormAlert message={formError} />
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5" noValidate>
             <TextField
               id="email"
               label="Email"
@@ -209,7 +203,7 @@ export default function Login() {
               </div>
             )}
 
-            <Button status={status} className="mt-4">
+            <Button status={status} className="mt-5">
               Sign in
             </Button>
 
